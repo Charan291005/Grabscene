@@ -43,7 +43,7 @@ export default function ShowBookingPage() {
   const params = useParams();
   const router = useRouter();
   const showId = typeof params.id === 'string' ? params.id : 'default-show';
-  const currentUserId = 'user-123'; // Mock user id
+  const currentUserId = '11111111-1111-1111-1111-111111111111'; // Mock user id
   
   const { seats, optimisticHoldSeats } = useShowSeatsRealtime(showId, mockSeats);
   const [selectedSeatIds, setSelectedSeatIds] = useState<Set<string>>(new Set());

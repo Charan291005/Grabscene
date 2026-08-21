@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { HoldCountdownTimer } from '../../../components/booking/HoldCountdownTimer';
 import { useHoldTimer } from '../../../hooks/useHoldTimer';
 import { useParams, useRouter } from 'next/navigation';
@@ -13,7 +13,29 @@ export default function CheckoutPage() {
   // In a real app, you would fetch these details based on the holdId from an API.
   // For demonstration, we simulate the state.
   const showId = "55551111-5555-1111-5555-111155551111";
-  const seatIds = ["55555555-5555-5555-5555-000000000001", "55555555-5555-5555-5555-000000000002"];
+  
+  // Dynamic state for selected seats loaded from sessionStorage
+  const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
+  
+  useEffect(() => {
+    try {
+      const data = sessionStorage.getItem('grabscene_pending_seats');
+      if (data) setSelectedSeats(JSON.parse(data));
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  // Compute total dynamically
+  const subtotal = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+  const serviceFee = selectedSeats.length * 2.50; // $2.50 per ticket fee
+  const total = subtotal + serviceFee;
+  
+  // Extract real IDs
+  const seatIds = useMemo(() => {
+    if (selectedSeats.length > 0) return selectedSeats.map(s => s.id);
+    return ["55555555-5555-5555-5555-000000000001"]; // fallback
+  }, [selectedSeats]);
   const userId = "11111111-1111-1111-1111-111111111111";
   
   // Calculate a mock expiry 10 minutes from now (simulating what the server returned)
@@ -135,35 +157,38 @@ export default function CheckoutPage() {
             <h2 className="text-xl font-semibold text-white mb-6">Order Summary</h2>
             
             <div className="space-y-4 mb-6">
-              <div className="flex justify-between text-zinc-300">
-                <span>Row A - Seat 1 (Standard)</span>
-                <span>$45.00</span>
-              </div>
-              <div className="flex justify-between text-zinc-300">
-                <span>Row A - Seat 2 (Standard)</span>
-                <span>$45.00</span>
-              </div>
+              {selectedSeats.length > 0 ? (
+                selectedSeats.map(seat => (
+                  <div key={seat.id} className="flex justify-between text-zinc-300">
+                    <span>Row {seat.row} - Seat {seat.seatNumber} ({seat.category})</span>
+                    <span>${seat.price.toFixed(2)}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-zinc-500 italic">No seats selected (Mock Mode)</div>
+              )}
+              
               <div className="flex justify-between text-zinc-400 text-sm">
                 <span>Service Fee</span>
-                <span>$5.00</span>
+                <span>${serviceFee.toFixed(2)}</span>
               </div>
             </div>
             
             <div className="pt-6 border-t border-zinc-800">
               <div className="flex justify-between items-end mb-8">
                 <span className="text-zinc-400">Total</span>
-                <span className="text-3xl font-bold text-white">$95.00</span>
+                <span className="text-3xl font-bold text-white">${total.toFixed(2)}</span>
               </div>
 
               <div className="flex flex-col gap-3">
                 <button 
                   onClick={handlePay}
-                  disabled={isExpired || isProcessing}
+                  disabled={isExpired || isProcessing || selectedSeats.length === 0}
                   className="w-full py-4 rounded-xl font-medium flex justify-center items-center gap-2 transition-all 
                     disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed
                     bg-cyan-500 hover:bg-cyan-400 text-cyan-950 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
                 >
-                  {isProcessing ? "Processing..." : "Pay $95.00"}
+                  {isProcessing ? "Processing..." : `Pay $${total.toFixed(2)}`}
                 </button>
                 <button 
                   onClick={handleCancel}

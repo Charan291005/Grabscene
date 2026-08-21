@@ -75,6 +75,8 @@ export default function ShowBookingPage() {
     setIsHolding(false);
     if (result.success) {
       setToast({ message: 'Seats held successfully for 10 minutes.', type: 'success' });
+      // Save actual selected seats to sessionStorage so the checkout page can display them dynamically
+      sessionStorage.setItem('grabscene_pending_seats', JSON.stringify(selectedSeats));
       // Redirect to checkout to complete the integration flow
       setTimeout(() => {
         router.push(`/checkout/hold-${Date.now()}`);

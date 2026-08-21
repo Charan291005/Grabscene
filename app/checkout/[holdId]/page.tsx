@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { HoldCountdownTimer } from '../../../components/booking/HoldCountdownTimer';
 import { useHoldTimer } from '../../../hooks/useHoldTimer';
 import { useParams, useRouter } from 'next/navigation';
+import { Clock } from 'lucide-react';
 
 export default function CheckoutPage() {
   const params = useParams();

@@ -9,6 +9,7 @@ import { useShowSeatsRealtime } from '../../../hooks/useShowSeatsRealtime';
 import { ShowSeat } from '../../../types/booking';
 import { useParams, useRouter } from 'next/navigation';
 import { cn } from '../../../lib/utils';
+import { BrandLogo } from '../../../components/BrandLogo';
 
 // Mock initial data for demonstration
 const mockSeats: ShowSeat[] = [];
@@ -99,6 +100,7 @@ export default function ShowBookingPage() {
         {/* Header */}
         <header className="mb-6 flex flex-col lg:flex-row lg:justify-between lg:items-end gap-6">
           <div>
+            <BrandLogo compact />
             <div className="inline-flex items-center rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-400 transition-colors mb-3">
               Live Booking
             </div>

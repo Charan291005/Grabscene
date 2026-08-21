@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #050810;
+  --background: #071217;
   --foreground: #e4e4e7;
+  --brand-teal: #13869a;
+  --brand-teal-bright: #32b8c4;
+  --brand-orange: #e47711;
+  --brand-orange-bright: #f59a32;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -11,6 +15,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
+  --color-cyan-400: var(--brand-teal-bright);
+  --color-cyan-500: var(--brand-teal);
 }
 
 /* ── Global resets ─────────────────────── */
@@ -27,7 +33,10 @@ html {
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(19, 134, 154, 0.14), transparent 28rem),
+    radial-gradient(circle at 88% 8%, rgba(228, 119, 17, 0.1), transparent 24rem),
+    var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   line-height: 1.6;

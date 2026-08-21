@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { HoldCountdownTimer } from '../../../components/booking/HoldCountdownTimer';
+import { BrandLogo } from '../../../components/BrandLogo';
 import { useHoldTimer } from '../../../hooks/useHoldTimer';
 import { useParams, useRouter } from 'next/navigation';
 import { Clock } from 'lucide-react';
@@ -109,6 +110,7 @@ export default function CheckoutPage() {
       {/* Top Navigation & Timer */}
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
         <div>
+          <BrandLogo compact />
           <h1 className="text-3xl font-bold tracking-tight text-white">Checkout</h1>
           <p className="text-zinc-400">Complete your reservation before the timer runs out.</p>
         </div>

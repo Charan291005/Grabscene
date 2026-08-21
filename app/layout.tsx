@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#050810",
+  themeColor: "#071217",
   width: "device-width",
   initialScale: 1,
 };
@@ -49,7 +49,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="min-h-full flex flex-col antialiased font-sans bg-[#050810] text-zinc-100">
+      <body className="min-h-full flex flex-col antialiased font-sans bg-[#071217] text-zinc-100">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-cyan-500 focus:text-cyan-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-semibold"

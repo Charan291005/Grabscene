@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { BrandLogo } from "@/components/BrandLogo";
 import {
   Ticket,
   Search,
@@ -66,25 +67,14 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("Concerts");
 
   return (
-    <div className="min-h-screen bg-[#000000] text-zinc-100 font-sans selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-[#071217] text-zinc-100 font-sans selection:bg-cyan-500/30">
       {/* Navigation */}
       <nav
         className="border-b border-white/[0.08] bg-black/50 backdrop-blur-xl sticky top-0 z-50"
         aria-label="Primary navigation"
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-lg"
-            aria-label="GrabScene home"
-          >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
-              <Ticket className="w-4 h-4 text-white" aria-hidden="true" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-white">
-              GrabScene
-            </span>
-          </Link>
+          <BrandLogo compact />
           <div className="hidden md:flex items-center gap-1 text-sm font-medium">
             {["Concerts", "Sports", "Theater", "Festivals"].map((tab) => (
               <button
@@ -255,8 +245,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2 text-zinc-400">
-              <Ticket className="w-5 h-5" aria-hidden="true" />
-              <span className="font-semibold text-white tracking-tight">GrabScene</span>
+              <BrandLogo compact href={undefined} />
               <span className="text-sm ml-2">© 2026 GrabScene Inc.</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-zinc-500">

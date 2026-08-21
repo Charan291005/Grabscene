@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Download, Share2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
+import { BrandLogo } from '../../../components/BrandLogo';
 
 export default function TicketPassPage() {
   const params = useParams();
@@ -53,7 +54,10 @@ export default function TicketPassPage() {
 
       {/* Controls */}
       <div className="w-full max-w-sm flex justify-between items-center mb-6 px-2">
-        <h1 className="text-xl font-bold text-white tracking-tight">Your Digital Pass</h1>
+        <div>
+          <BrandLogo compact />
+          <h1 className="text-xl font-bold text-white tracking-tight">Your Digital Pass</h1>
+        </div>
         <div className="flex gap-2">
           <button 
           type="button"

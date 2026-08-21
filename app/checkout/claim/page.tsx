@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { HoldCountdownTimer } from '../../../components/booking/HoldCountdownTimer';
+import { BrandLogo } from '../../../components/BrandLogo';
 import { Clock, CheckCircle2 } from 'lucide-react';
 
 const SHOW_ID = '55551111-5555-1111-5555-111155551111';
@@ -131,6 +132,7 @@ function ClaimPageContent() {
     <div className="min-h-screen bg-[#050810] text-zinc-100 p-4 md:p-8 font-sans">
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-col items-center mb-12 mt-8 text-center">
+          <BrandLogo compact />
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-400 mb-6 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
             <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> Waitlist Offer
           </div>

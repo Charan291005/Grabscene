@@ -23,7 +23,14 @@ async function syncSeats() {
     // Generate dynamic geometry seats
     const mockSeats = createDemoSeats(event.id);
     
-    // First, delete existing show_seats for this event
+    // First, delete bookings related to this show to avoid foreign key constraints
+    const { data: oldShowSeats } = await supabase.from('show_seats').select('id').eq('show_id', event.id);
+    if (oldShowSeats && oldShowSeats.length > 0) {
+      const oldIds = oldShowSeats.map(s => s.id);
+      await supabase.from('booking_items').delete().in('show_seat_id', oldIds);
+    }
+    
+    // Now delete existing show_seats for this event
     const { error: delError } = await supabase
       .from('show_seats')
       .delete()
@@ -43,15 +50,17 @@ async function syncSeats() {
     
     const sectionIds: Record<string, string> = {};
     for (const sec of uniqueSections) {
-      // try to insert
-      const id = crypto.randomUUID();
-      await supabase.from('venue_sections').upsert({
-        id,
-        venue_id: venueId,
-        name: sec
-      }, { onConflict: 'venue_id,name' });
-      
-      const { data } = await supabase.from('venue_sections').select('id').eq('venue_id', venueId).eq('name', sec).single();
+      let { data } = await supabase.from('venue_sections').select('id').eq('venue_id', venueId).eq('name', sec).maybeSingle();
+      if (!data) {
+        const id = crypto.randomUUID();
+        const { error: insErr } = await supabase.from('venue_sections').insert({
+          id,
+          venue_id: venueId,
+          name: sec
+        });
+        if (insErr) console.error("Error inserting section:", insErr);
+        data = { id };
+      }
       if (data) sectionIds[sec] = data.id;
     }
     

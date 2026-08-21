@@ -9,7 +9,7 @@ export default function RaceConditionDemo() {
   const [bobStatus, setBobStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   // Targeting a known available seat from the demo seed data (Event A)
-  const showId = "ssss1111-ssss-1111-ssss-1111ssss1111";
+  const showId = "55551111-5555-1111-5555-111155551111";
   const seatId = "eeee5555-eeee-5555-eeee-5555eeee5554"; 
   
   const addLog = (msg: string) => {

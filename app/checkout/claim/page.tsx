@@ -63,8 +63,8 @@ export default function ClaimPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          showId: 'ssss2222-ssss-2222-ssss-2222ssss2222',
-          seatIds: ['hhhh9999-hhhh-9999-hhhh-9999hhhh9991'], // Note: requires seat to be held first, but for demo we can just let it fail or mock it
+          showId: '55552222-5555-2222-5555-222255552222',
+          seatIds: ['88889999-8888-9999-8888-999988889991'], // Note: requires seat to be held first, but for demo we can just let it fail or mock it
           userId: '33333333-3333-3333-3333-333333333333',
           bookingRef: `GS-${Math.random().toString(36).substring(7).toUpperCase()}`,
           userEmail: 'customer1@example.com'

@@ -32,7 +32,7 @@ export default function Home() {
         {/* Evaluation Portals */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-24">
           
-          <Link href="/shows/ssss1111-ssss-1111-ssss-1111ssss1111" className="group block">
+          <Link href="/shows/55551111-5555-1111-5555-111155551111" className="group block">
             <div className="h-full bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 hover:bg-zinc-800/80 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(6,182,212,0.1)] hover:-translate-y-1 relative overflow-hidden">
               <div className="w-12 h-12 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl flex items-center justify-center mb-6 text-cyan-400">
                 <Ticket className="w-6 h-6" />

@@ -65,6 +65,6 @@ To guarantee an exceptional evaluation experience, a suite of tools has been bui
 
 ## Quick Demo Guide
 The database is pre-seeded. Try these flows instantly:
-1. **End-to-End Journey**: Go to `http://localhost:3000/shows/ssss1111-ssss-1111-ssss-1111ssss1111`. Click a seat, hit Proceed. You are routed to checkout with a 10m timer. Hit Pay. The Email Drawer intercepts the ticket, then redirects you to the Digital Pass viewer (`/tickets/[ref]`).
+1. **End-to-End Journey**: Go to `http://localhost:3000/shows/55551111-5555-1111-5555-111155551111`. Click a seat, hit Proceed. You are routed to checkout with a 10m timer. Hit Pay. The Email Drawer intercepts the ticket, then redirects you to the Digital Pass viewer (`/tickets/[ref]`).
 2. **Waitlist Reallocation**: Click "Test Waitlist Shift" on the floating Evaluator Toolbar. It cancels a pre-seeded booking on a sold-out show and instantly reassigns the tickets to the first waitlist member.
 3. **Organiser Dashboard**: Visit `/dashboard` to view the mock revenue breakdown and active event list.

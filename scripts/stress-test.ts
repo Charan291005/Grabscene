@@ -7,7 +7,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 // We must hit the local API since this simulates actual web traffic.
 // Ensure `npm run dev` is running before executing this script!
 
-const showId = "ssss1111-ssss-1111-ssss-1111ssss1111"; // Mock Event A
+const showId = "55551111-5555-1111-5555-111155551111"; // Mock Event A
 const seatId = "eeee5555-eeee-5555-eeee-5555eeee5554"; // Known available seat
 const userId = "11111111-1111-1111-1111-111111111111"; // Admin user
 

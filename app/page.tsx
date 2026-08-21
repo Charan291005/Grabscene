@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Ticket,
   Search,
@@ -9,9 +10,7 @@ import {
   Calendar,
   Music,
   Sparkles,
-  LayoutDashboard,
-  ShieldCheck,
-  X,
+  ArrowRight
 } from "lucide-react";
 
 const SHOW_ID = "55551111-5555-1111-5555-111155551111";
@@ -23,7 +22,7 @@ const trendingEvents = [
     date: "Friday, Aug 21, 2026",
     venue: "O2 Arena, London",
     image:
-      "https://images.unsplash.com/photo-1540039155733-d7696d819920?w=800&q=80",
+      "https://images.unsplash.com/photo-1540039155733-d7696d819920?w=1200&q=80",
     tags: ["Orchestral", "Live Music"],
     price: "From $45",
     featured: true,
@@ -64,19 +63,13 @@ const trendingEvents = [
 ];
 
 export default function Home() {
-  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("Concerts");
 
   return (
-    <div className="min-h-screen bg-[#050810] text-zinc-100 font-sans overflow-hidden relative pb-32">
-      {/* Background ambient glow */}
-      <div
-        className="absolute top-[-20%] left-[20%] w-[60%] h-[50%] bg-cyan-500/10 blur-[150px] rounded-full pointer-events-none"
-        aria-hidden="true"
-      />
-
+    <div className="min-h-screen bg-[#000000] text-zinc-100 font-sans selection:bg-cyan-500/30">
       {/* Navigation */}
       <nav
-        className="border-b border-zinc-800/50 bg-[#050810]/80 backdrop-blur-md sticky top-0 z-50"
+        className="border-b border-white/[0.08] bg-black/50 backdrop-blur-xl sticky top-0 z-50"
         aria-label="Primary navigation"
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -85,120 +78,120 @@ export default function Home() {
             className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-lg"
             aria-label="GrabScene home"
           >
-            <Ticket className="w-6 h-6 text-cyan-400" aria-hidden="true" />
-            <span className="text-xl font-bold tracking-tight text-white">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
+              <Ticket className="w-4 h-4 text-white" aria-hidden="true" />
+            </div>
+            <span className="text-lg font-bold tracking-tight text-white">
               GrabScene
             </span>
           </Link>
-          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-400">
-            <Link
-              href="#"
-              className="text-white hover:text-cyan-400 transition-colors"
-              aria-current="page"
-            >
-              Concerts
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-white transition-colors"
-            >
-              Sports
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-white transition-colors"
-            >
-              Theater
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-white transition-colors"
-            >
-              Festivals
-            </Link>
+          <div className="hidden md:flex items-center gap-1 text-sm font-medium">
+            {["Concerts", "Sports", "Theater", "Festivals"].map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-full transition-all duration-200 ${
+                  activeTab === tab
+                    ? "bg-white/10 text-white"
+                    : "text-zinc-400 hover:text-white hover:bg-white/5"
+                }`}
+                aria-current={activeTab === tab ? "page" : undefined}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
           <div className="flex items-center gap-4">
             <button
               type="button"
-              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+              className="text-sm font-medium text-zinc-300 hover:text-white transition-colors px-4 py-2"
             >
-              Sign In
+              Log in
+            </button>
+            <button
+              type="button"
+              className="text-sm font-medium bg-white text-black hover:bg-zinc-200 transition-colors px-4 py-2 rounded-full"
+            >
+              Sign up
             </button>
           </div>
         </div>
       </nav>
 
-      <main id="main-content" className="max-w-7xl mx-auto px-6 pt-12 relative z-10">
-        {/* Search Bar */}
-        <div className="max-w-2xl mx-auto mb-12 relative" role="search">
-          <label htmlFor="event-search" className="sr-only">
-            Search for artists, venues, or events
-          </label>
-          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-            <Search className="w-5 h-5 text-zinc-500" aria-hidden="true" />
+      <main id="main-content" className="max-w-7xl mx-auto px-6 pt-12 md:pt-20 pb-32">
+        {/* Header Section */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-6">
+            Your ticket to the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">front row.</span>
+          </h1>
+          <p className="text-lg md:text-xl text-zinc-400 mb-10">
+            High-demand events, fair queuing, and seamless checkout.
+            Discover the next unforgettable experience near you.
+          </p>
+          
+          {/* Search Bar */}
+          <div className="max-w-2xl mx-auto relative group" role="search">
+            <label htmlFor="event-search" className="sr-only">
+              Search for artists, venues, or events
+            </label>
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <Search className="w-5 h-5 text-zinc-400 group-focus-within:text-cyan-400 transition-colors" aria-hidden="true" />
+            </div>
+            <input
+              id="event-search"
+              type="search"
+              placeholder="Search for artists, venues, or events..."
+              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-4 pl-12 pr-6 text-white placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/[0.05] transition-all"
+            />
           </div>
-          <input
-            id="event-search"
-            type="search"
-            placeholder="Search for artists, venues, or events..."
-            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-full py-4 pl-12 pr-6 text-white placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/50 transition-all shadow-xl"
-          />
         </div>
 
         {/* Featured Hero */}
-        <section aria-labelledby="featured-heading" className="mb-16">
+        <section aria-labelledby="featured-heading" className="mb-20">
           <h2 id="featured-heading" className="sr-only">
             Featured Event
           </h2>
           <Link
             href={`/shows/${trendingEvents[0].id}`}
-            className="group block relative rounded-3xl overflow-hidden border border-zinc-800/50 hover:border-cyan-500/30 transition-all duration-500 shadow-2xl hover:shadow-[0_0_40px_rgba(6,182,212,0.15)]"
+            className="group block relative rounded-[2rem] overflow-hidden border border-white/[0.08] hover:border-white/[0.15] transition-all duration-500 bg-zinc-900/50"
           >
-            <div
-              className="absolute inset-0 bg-gradient-to-t from-[#050810] via-[#050810]/60 to-transparent z-10"
-              aria-hidden="true"
-            />
-            <img
-              src={trendingEvents[0].image}
-              alt={`Concert stage for ${trendingEvents[0].title}`}
-              className="w-full h-[500px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-              loading="eager"
-            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" aria-hidden="true" />
+            <div className="relative h-[600px] w-full">
+              <Image
+                src={trendingEvents[0].image}
+                alt={`Concert stage for ${trendingEvents[0].title}`}
+                fill
+                priority
+                className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                sizes="(max-width: 1280px) 100vw, 1280px"
+              />
+            </div>
             <div className="absolute bottom-0 left-0 p-8 md:p-12 z-20 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-cyan-500/20 border border-cyan-500/30 px-3 py-1 text-xs font-semibold text-cyan-400 mb-4 backdrop-blur-md">
-                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" /> High
-                  Demand Event
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/10 px-3 py-1 text-xs font-medium text-white mb-6 backdrop-blur-md">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" /> High Demand Event
                 </div>
-                <h3 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-3">
+                <h3 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-4">
                   {trendingEvents[0].title}
                 </h3>
                 <div className="flex flex-wrap items-center gap-4 text-zinc-300 font-medium">
                   <span className="flex items-center gap-1.5">
-                    <Calendar
-                      className="w-4 h-4 text-zinc-500"
-                      aria-hidden="true"
-                    />{" "}
+                    <Calendar className="w-4 h-4 text-zinc-500" aria-hidden="true" />
                     <time>{trendingEvents[0].date}</time>
                   </span>
-                  <span
-                    className="hidden md:block w-1 h-1 rounded-full bg-zinc-600"
-                    aria-hidden="true"
-                  />
+                  <span className="hidden md:block w-1 h-1 rounded-full bg-zinc-600" aria-hidden="true" />
                   <span className="flex items-center gap-1.5">
-                    <MapPin
-                      className="w-4 h-4 text-zinc-500"
-                      aria-hidden="true"
-                    />{" "}
+                    <MapPin className="w-4 h-4 text-zinc-500" aria-hidden="true" />
                     {trendingEvents[0].venue}
                   </span>
                 </div>
               </div>
               <span
-                className="px-8 py-4 rounded-xl font-bold bg-white text-black group-hover:bg-zinc-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] whitespace-nowrap text-center"
+                className="px-8 py-4 rounded-full font-semibold bg-white text-black group-hover:bg-zinc-200 transition-colors whitespace-nowrap text-center flex items-center justify-center gap-2"
                 aria-hidden="true"
               >
-                Get Tickets Now
+                Get Tickets <ArrowRight className="w-4 h-4" />
               </span>
             </div>
           </Link>
@@ -207,13 +200,13 @@ export default function Home() {
         {/* Trending Grid */}
         <section aria-labelledby="trending-heading">
           <div className="mb-8 flex items-center justify-between">
-            <h2
-              id="trending-heading"
-              className="text-2xl font-bold text-white flex items-center gap-2"
-            >
-              <Music className="w-6 h-6 text-cyan-500" aria-hidden="true" />{" "}
+            <h2 id="trending-heading" className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+              <Music className="w-5 h-5 text-zinc-400" aria-hidden="true" />
               Trending Near You
             </h2>
+            <Link href="#" className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors">
+              View all
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -221,46 +214,34 @@ export default function Home() {
               <Link
                 key={event.id}
                 href={`/shows/${event.id}`}
-                className="group block bg-zinc-900/40 border border-zinc-800/50 rounded-2xl overflow-hidden hover:border-zinc-700 transition-all duration-300 hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-cyan-400"
+                className="group block bg-white/[0.02] border border-white/[0.05] rounded-2xl overflow-hidden hover:bg-white/[0.04] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-400"
               >
-                <div className="relative h-48 overflow-hidden">
-                  <img
+                <div className="relative h-48 w-full overflow-hidden bg-zinc-900">
+                  <Image
                     src={event.image}
                     alt={`Promotional image for ${event.title}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
-                  <div
-                    className="absolute inset-0 bg-gradient-to-t from-[#090D16] to-transparent"
-                    aria-hidden="true"
-                  />
-                  <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-emerald-400 border border-emerald-500/30">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-80" aria-hidden="true" />
+                  <div className="absolute bottom-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-semibold text-black">
                     {event.price}
                   </div>
                 </div>
-                <div className="p-6 relative bg-[#090D16]">
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors tracking-tight">
                     {event.title}
                   </h3>
-                  <div className="space-y-2 mb-6">
+                  <div className="space-y-2">
                     <p className="text-sm text-zinc-400 flex items-center gap-2">
-                      <Calendar className="w-4 h-4" aria-hidden="true" />{" "}
+                      <Calendar className="w-4 h-4" aria-hidden="true" />
                       <time>{event.date}</time>
                     </p>
                     <p className="text-sm text-zinc-400 flex items-center gap-2">
-                      <MapPin className="w-4 h-4" aria-hidden="true" />{" "}
+                      <MapPin className="w-4 h-4" aria-hidden="true" />
                       {event.venue}
                     </p>
-                  </div>
-                  <div className="flex gap-2" aria-label="Event categories">
-                    {event.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-xs font-medium text-zinc-500 bg-zinc-800/50 px-2 py-1 rounded-md"
-                      >
-                        {tag}
-                      </span>
-                    ))}
                   </div>
                 </div>
               </Link>
@@ -269,55 +250,23 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Evaluator / Admin FAB */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-        {isAdminMenuOpen && (
-          <nav
-            className="bg-[#0c111d] border border-zinc-800 shadow-2xl rounded-2xl p-4 flex flex-col gap-2 min-w-[200px]"
-            aria-label="Evaluator tools"
-          >
-            <div className="flex items-center justify-between mb-2 px-2">
-              <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
-                Evaluator Tools
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsAdminMenuOpen(false)}
-                className="text-zinc-500 hover:text-white transition-colors"
-                aria-label="Close evaluator menu"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      {/* Footer */}
+      <footer className="border-t border-white/[0.08] bg-black">
+        <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2 text-zinc-400">
+              <Ticket className="w-5 h-5" aria-hidden="true" />
+              <span className="font-semibold text-white tracking-tight">GrabScene</span>
+              <span className="text-sm ml-2">© 2026 GrabScene Inc.</span>
             </div>
-            <Link
-              href="/demo/race-condition"
-              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-800/50 text-sm font-medium text-amber-400 transition-colors"
-            >
-              <ShieldCheck className="w-4 h-4" aria-hidden="true" /> Concurrency
-              Test
-            </Link>
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-800/50 text-sm font-medium text-indigo-400 transition-colors"
-            >
-              <LayoutDashboard className="w-4 h-4" aria-hidden="true" />{" "}
-              Dashboard
-            </Link>
-          </nav>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
-          className="w-12 h-12 bg-zinc-800/80 backdrop-blur border border-zinc-700 hover:border-zinc-500 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-all shadow-lg"
-          aria-label={
-            isAdminMenuOpen ? "Close evaluator tools" : "Open evaluator tools"
-          }
-          aria-expanded={isAdminMenuOpen}
-        >
-          <LayoutDashboard className="w-5 h-5" aria-hidden="true" />
-        </button>
-      </div>
+            <div className="flex items-center gap-6 text-sm text-zinc-500">
+              <Link href="#" className="hover:text-white transition-colors">Terms</Link>
+              <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
+              <Link href="#" className="hover:text-white transition-colors">Support</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

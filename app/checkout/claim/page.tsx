@@ -13,8 +13,10 @@ function ClaimPageContent() {
   const router = useRouter();
 
   const [isValidating, setIsValidating] = useState(true);
-  const [offerData, setOfferData] = useState<any>(null);
+  const [offerData, setOfferData] = useState<{seat: {row: string; number: string; category: string; price: number}; expiresAt: string} | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     setTimeout(() => {
@@ -55,6 +57,8 @@ function ClaimPageContent() {
 
   const handleClaim = async () => {
     setIsProcessing(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
     try {
       const res = await fetch('/api/bookings/confirm', {
         method: 'POST',
@@ -63,21 +67,27 @@ function ClaimPageContent() {
           showId: '55552222-5555-2222-5555-222255552222',
           seatIds: ['88889999-8888-9999-8888-999988889991'],
           userId: '33333333-3333-3333-3333-333333333333',
-          bookingRef: `GS-${Math.random().toString(36).substring(7).toUpperCase()}`,
           userEmail: 'customer1@example.com'
         })
       });
       const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to claim ticket.");
+      }
+
       if (data.mockHtml) {
         window.dispatchEvent(new CustomEvent('grabscene:mock-email', { detail: { mockHtml: data.mockHtml } }));
       }
+      setSuccessMsg("Ticket Claimed Successfully! Redirecting...");
       setTimeout(() => {
-        alert("Ticket Claimed Successfully! See the generated email in the preview drawer.");
-      }, 500);
-    } catch (e) {
-      alert("Error processing claim.");
+        router.push(`/tickets/${data.bookingId || data.bookingRef || 'MOCK-REF'}`);
+      }, 2000);
+    } catch (e: any) {
+      setErrorMsg(e.message || "An unexpected error occurred.");
+    } finally {
+      setIsProcessing(false);
     }
-    setIsProcessing(false);
   };
 
   if (isValidating) {
@@ -165,15 +175,27 @@ function ClaimPageContent() {
               </div>
             </div>
 
+            {errorMsg && (
+              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/50 text-red-400 text-sm" role="alert">
+                {errorMsg}
+              </div>
+            )}
+            
+            {successMsg && (
+              <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 text-sm" role="status">
+                {successMsg}
+              </div>
+            )}
+
             <button 
               type="button"
               onClick={handleClaim}
-              disabled={isProcessing}
+              disabled={isProcessing || !!successMsg}
               aria-busy={isProcessing}
               className="w-full py-4 rounded-xl font-bold flex justify-center items-center gap-2 transition-all duration-300
                 bg-white hover:bg-zinc-200 text-black shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
             >
-              {isProcessing ? "Confirming..." : "Claim Ticket Now"}
+              {isProcessing ? "Confirming..." : successMsg ? "Claimed!" : "Claim Ticket Now"}
             </button>
             <p className="text-center text-zinc-500 text-sm mt-6">
               If you don&apos;t want this seat, you can just ignore this page.

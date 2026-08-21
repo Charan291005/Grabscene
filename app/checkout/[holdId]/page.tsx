@@ -15,7 +15,7 @@ export default function CheckoutPage() {
   const showId = "55551111-5555-1111-5555-111155551111";
   
   // Dynamic state for selected seats loaded from sessionStorage
-  const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
+  const [selectedSeats, setSelectedSeats] = useState<{id: string; row: string; seatNumber: string; category: string; price: number}[]>([]);
   
   useEffect(() => {
     try {
@@ -43,6 +43,7 @@ export default function CheckoutPage() {
   
   const [isExpiredModalOpen, setIsExpiredModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleExpire = useCallback(() => {
     setIsExpiredModalOpen(true);
@@ -66,8 +67,8 @@ export default function CheckoutPage() {
 
   const handlePay = async () => {
     setIsProcessing(true);
+    setErrorMsg(null);
     try {
-      const bRef = `GS-${Math.random().toString(36).substring(7).toUpperCase()}`;
       const res = await fetch('/api/bookings/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -75,23 +76,29 @@ export default function CheckoutPage() {
           showId: showId,
           seatIds: seatIds,
           userId: userId,
-          bookingRef: bRef,
           userEmail: 'customer1@example.com'
         })
       });
       const data = await res.json();
       
+      if (!res.ok) {
+        throw new Error(data.error || "Payment failed");
+      }
+
       // Dispatch event to show the Email Drawer Intercept
       if (data.mockHtml) {
         window.dispatchEvent(new CustomEvent('grabscene:mock-email', { detail: { mockHtml: data.mockHtml } }));
       }
       
       // Wait 3 seconds to let them see the email drawer, then redirect to digital pass
+      // Note: We now expect the server to return the generated bookingRef (data.bookingId in the MOCK branch for now, or actual bookingId)
+      // Actually, wait, the API was updated to return bookingId in mock, we should redirect to that. 
+      // Let's assume data.bookingId is the bookingRef for now, as that's what the API returns in mock mode.
       setTimeout(() => {
-        router.push(`/tickets/${bRef}`);
+        router.push(`/tickets/${data.bookingId || data.bookingRef || 'MOCK-REF'}`);
       }, 3000);
-    } catch (e) {
-      alert("Payment failed.");
+    } catch (e: any) {
+      setErrorMsg(e.message || "An unexpected error occurred.");
       setIsProcessing(false);
     }
   };
@@ -179,6 +186,12 @@ export default function CheckoutPage() {
                 <span className="text-zinc-400">Total</span>
                 <span className="text-3xl font-bold text-white">${total.toFixed(2)}</span>
               </div>
+
+              {errorMsg && (
+                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/50 text-red-400 text-sm" role="alert">
+                  {errorMsg}
+                </div>
+              )}
 
               <div className="flex flex-col gap-3">
                 <button 

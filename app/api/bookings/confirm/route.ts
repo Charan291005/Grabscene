@@ -10,11 +10,14 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder
 
 export async function POST(request: Request) {
   try {
-    const { showId, seatIds, userId, bookingRef, userEmail } = await request.json();
+    const { showId, seatIds, userId, userEmail } = await request.json();
 
-    if (!showId || !seatIds || !userId || !bookingRef || !userEmail) {
+    if (!showId || !seatIds || !userId || !userEmail) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    // Generate secure booking reference on the server
+    const bookingRef = `GS-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

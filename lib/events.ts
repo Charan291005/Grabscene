@@ -84,6 +84,21 @@ export function formatPrice(price: number) {
   return `From $${price}`;
 }
 
+function generateSeatUUID(showId: string, row: string, seat: number): string {
+  // Simple deterministic UUID generator for the frontend/backend match
+  const str = `${showId}-${row}-${seat}`;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  const hex = Math.abs(hash).toString(16).padStart(8, '0');
+  const base = showId.slice(8); // Use the rest of the showId to pad
+  const combined = (hex + base.replace(/-/g, '') + '00000000000000000000000000000000').toLowerCase();
+  
+  return `${combined.slice(0,8)}-${combined.slice(8,12)}-4${combined.slice(13,16)}-a${combined.slice(17,20)}-${combined.slice(20,32)}`;
+}
+
 export function createDemoSeats(showId: string) {
   const seats: any[] = [];
   
@@ -102,7 +117,7 @@ export function createDemoSeats(showId: string) {
         for (let seat = 1; seat <= numSeats; seat++) {
           seatIndexOverall++;
           seats.push({
-            id: `${showId.slice(0, 8)}-seat-${row}-${seat}`,
+            id: generateSeatUUID(showId, row, seat),
             row, seatNumber: String(seat),
             category: section.category, price: section.basePrice,
             status: seatIndexOverall % 19 === 0 ? "held" : seatIndexOverall % 13 === 0 ? "booked" : "available",
@@ -125,7 +140,7 @@ export function createDemoSeats(showId: string) {
         for (let seat = 1; seat <= section.seatsPerRow; seat++) {
           seatIndexOverall++;
           seats.push({
-            id: `${showId.slice(0, 8)}-seat-${row}-${seat}`,
+            id: generateSeatUUID(showId, row, seat),
             row, seatNumber: String(seat),
             category: section.category, price: section.basePrice,
             status: seatIndexOverall % 17 === 0 ? "held" : seatIndexOverall % 11 === 0 ? "booked" : "available",
@@ -149,7 +164,7 @@ export function createDemoSeats(showId: string) {
         for (let seat = 1; seat <= numSeats; seat++) {
           seatIndexOverall++;
           seats.push({
-            id: `${showId.slice(0, 8)}-seat-${row}-${seat}`,
+            id: generateSeatUUID(showId, row, seat),
             row, seatNumber: String(seat),
             category: section.category, price: section.basePrice,
             status: seatIndexOverall % 23 === 0 ? "held" : seatIndexOverall % 15 === 0 ? "booked" : "available",
@@ -171,7 +186,7 @@ export function createDemoSeats(showId: string) {
         for (let seat = 1; seat <= section.seatsPerRow; seat++) {
           seatIndexOverall++;
           seats.push({
-            id: `${showId.slice(0, 8)}-seat-${row}-${seat}`,
+            id: generateSeatUUID(showId, row, seat),
             row, seatNumber: String(seat),
             category: section.category, price: section.basePrice,
             status: seatIndexOverall % 25 === 0 ? "held" : seatIndexOverall % 19 === 0 ? "booked" : "available",

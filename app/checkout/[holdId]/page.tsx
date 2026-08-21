@@ -106,7 +106,7 @@ export default function CheckoutPage() {
           <p className="text-zinc-400">Complete your reservation before the timer runs out.</p>
         </div>
         
-        <div className="sticky top-4 z-40">
+        <div className="sticky top-4 z-40" role="timer" aria-live="polite" aria-label={`Time remaining: ${formattedTime}`}>
           <HoldCountdownTimer 
             formattedTime={formattedTime}
             isLowTime={isLowTime}
@@ -122,33 +122,33 @@ export default function CheckoutPage() {
         {/* Form Column */}
         <div className="flex-1 bg-[#0c111d] border border-zinc-800 rounded-3xl p-6 md:p-10 shadow-2xl">
           <h2 className="text-xl font-semibold text-white mb-6">Customer Details</h2>
-          <div className="space-y-6">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">First Name</label>
-                <input disabled={isExpired} type="text" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 disabled:opacity-50" placeholder="Jane" />
+                <label htmlFor="checkout-first-name" className="text-sm text-zinc-400">First Name</label>
+                <input id="checkout-first-name" disabled={isExpired} type="text" autoComplete="given-name" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50" placeholder="Jane" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-zinc-400">Last Name</label>
-                <input disabled={isExpired} type="text" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 disabled:opacity-50" placeholder="Doe" />
+                <label htmlFor="checkout-last-name" className="text-sm text-zinc-400">Last Name</label>
+                <input id="checkout-last-name" disabled={isExpired} type="text" autoComplete="family-name" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50" placeholder="Doe" />
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-zinc-400">Email Address</label>
-              <input disabled={isExpired} type="email" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 disabled:opacity-50" placeholder="jane@example.com" />
+              <label htmlFor="checkout-email" className="text-sm text-zinc-400">Email Address</label>
+              <input id="checkout-email" disabled={isExpired} type="email" autoComplete="email" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50" placeholder="jane@example.com" />
             </div>
             
             <hr className="border-zinc-800 my-8" />
             
             <h2 className="text-xl font-semibold text-white mb-6">Payment Information</h2>
             <div className="space-y-2">
-              <label className="text-sm text-zinc-400">Card Details (Simulated)</label>
-              <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-500 flex items-center justify-between">
-                <span>•••• •••• •••• 4242</span>
+              <label htmlFor="checkout-card" className="text-sm text-zinc-400">Card Details (Simulated)</label>
+              <div id="checkout-card" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-500 flex items-center justify-between" role="group" aria-label="Simulated credit card input">
+                <span aria-label="Card ending in 4242">•••• •••• •••• 4242</span>
                 <span className="text-xs border border-zinc-700 px-2 py-1 rounded">Mock Stripe Element</span>
               </div>
             </div>
-          </div>
+          </form>
         </div>
 
         {/* Order Summary Sidebar */}
@@ -156,7 +156,7 @@ export default function CheckoutPage() {
           <div className="bg-[#0c111d] border border-zinc-800 rounded-3xl p-6 shadow-2xl">
             <h2 className="text-xl font-semibold text-white mb-6">Order Summary</h2>
             
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 mb-6" aria-live="polite">
               {selectedSeats.length > 0 ? (
                 selectedSeats.map(seat => (
                   <div key={seat.id} className="flex justify-between text-zinc-300">
@@ -182,15 +182,18 @@ export default function CheckoutPage() {
 
               <div className="flex flex-col gap-3">
                 <button 
+                  type="button"
                   onClick={handlePay}
                   disabled={isExpired || isProcessing || selectedSeats.length === 0}
                   className="w-full py-4 rounded-xl font-medium flex justify-center items-center gap-2 transition-all 
                     disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed
                     bg-cyan-500 hover:bg-cyan-400 text-cyan-950 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                  aria-busy={isProcessing}
                 >
                   {isProcessing ? "Processing..." : `Pay $${total.toFixed(2)}`}
                 </button>
                 <button 
+                  type="button"
                   onClick={handleCancel}
                   disabled={isProcessing}
                   className="w-full py-4 rounded-xl font-medium flex justify-center items-center gap-2 transition-all 
@@ -206,16 +209,17 @@ export default function CheckoutPage() {
 
       {/* Expiry Modal Overlay */}
       {isExpiredModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="expired-title">
           <div className="bg-[#0c111d] border border-red-500/30 rounded-3xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.1)] text-center">
-            <div className="w-20 h-20 bg-red-500/10 border border-red-500/50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-red-500/10 border border-red-500/50 rounded-full flex items-center justify-center mx-auto mb-6" aria-hidden="true">
               <Clock className="w-8 h-8 text-red-500" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Hold Expired</h2>
+            <h2 id="expired-title" className="text-2xl font-bold text-white mb-2">Hold Expired</h2>
             <p className="text-zinc-400 mb-8">
               The time limit for your reservation has expired. The seats have been released back to the public pool.
             </p>
             <button 
+              type="button"
               onClick={() => router.push('/shows/55551111-5555-1111-5555-111155551111')}
               className="w-full py-3.5 rounded-xl font-medium bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
             >

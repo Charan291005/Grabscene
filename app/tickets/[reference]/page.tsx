@@ -56,15 +56,16 @@ export default function TicketPassPage() {
         <h1 className="text-xl font-bold text-white tracking-tight">Your Digital Pass</h1>
         <div className="flex gap-2">
           <button 
-            onClick={handleDownload} 
-            disabled={isDownloading}
-            className="w-10 h-10 rounded-full bg-zinc-800/50 hover:bg-zinc-700 flex items-center justify-center transition-colors disabled:opacity-50"
-            title="Download Ticket"
-          >
-            <Download className="w-4 h-4 text-zinc-300" />
-          </button>
-          <button className="w-10 h-10 rounded-full bg-zinc-800/50 hover:bg-zinc-700 flex items-center justify-center transition-colors" title="Share Ticket">
-            <Share2 className="w-4 h-4 text-zinc-300" />
+          type="button"
+          onClick={handleDownload} 
+          disabled={isDownloading}
+          className="w-10 h-10 rounded-full bg-zinc-800/50 hover:bg-zinc-700 flex items-center justify-center transition-colors disabled:opacity-50"
+          aria-label="Download ticket as image"
+        >
+          <Download className="w-4 h-4 text-zinc-300" aria-hidden="true" />
+        </button>
+        <button type="button" className="w-10 h-10 rounded-full bg-zinc-800/50 hover:bg-zinc-700 flex items-center justify-center transition-colors" aria-label="Share ticket">
+          <Share2 className="w-4 h-4 text-zinc-300" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -74,7 +75,7 @@ export default function TicketPassPage() {
         
         {/* Top Half */}
         <div className="bg-[#0c111d] border border-zinc-800 rounded-t-3xl p-8 relative overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-48 h-48 bg-cyan-500/20 blur-[60px] rounded-full pointer-events-none" />
+          <div className="absolute -top-20 -right-20 w-48 h-48 bg-cyan-500/20 blur-[60px] rounded-full pointer-events-none" aria-hidden="true" />
           
           <div className="flex justify-between items-start mb-8 relative z-10">
             <div>

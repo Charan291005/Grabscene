@@ -25,8 +25,8 @@ export const HoldCountdownTimer = ({ formattedTime, isLowTime, isExpired, progre
       "bg-amber-500/10 border-amber-500/30"
     )}>
       {/* Circular Progress */}
-      <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
-        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 48 48">
+      <div className="relative w-12 h-12 flex items-center justify-center shrink-0" aria-hidden="true">
+        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 48 48" role="img" aria-label="Time remaining progress">
           <circle
             cx="24"
             cy="24"

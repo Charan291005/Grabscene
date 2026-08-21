@@ -34,22 +34,24 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId }: Props) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="waitlist-heading">
       <div className="bg-[#0c111d] border border-zinc-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative">
         <button 
+          type="button"
           onClick={onClose}
           className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
+          aria-label="Close waitlist dialog"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5" aria-hidden="true" />
         </button>
 
         {!isSuccess ? (
           <>
-            <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mb-6">
+            <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mb-6" aria-hidden="true">
               <Users className="w-8 h-8 text-cyan-400" />
             </div>
             
-            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Join the Waitlist</h2>
+            <h2 id="waitlist-heading" className="text-2xl font-bold text-white mb-2 tracking-tight">Join the Waitlist</h2>
             <p className="text-zinc-400 mb-6">
               The {category} section is currently sold out. Join the waitlist to be notified instantly if a seat becomes available.
             </p>
@@ -66,8 +68,10 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId }: Props) => {
             </div>
 
             <button 
+              type="button"
               onClick={handleJoin}
               disabled={isSubmitting}
+              aria-busy={isSubmitting}
               className="w-full py-3.5 rounded-xl font-medium flex justify-center items-center gap-2 transition-all 
                 bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >

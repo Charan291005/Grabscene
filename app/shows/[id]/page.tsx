@@ -28,7 +28,7 @@ rows.forEach((row, rIdx) => {
     else if (rand > 0.75) status = 'held';
     
     mockSeats.push({
-      id: `${row}-${i}`,
+      id: `55555555-5555-5555-5555-${(rIdx * 100 + i).toString().padStart(12, '0')}`,
       row,
       seatNumber: i.toString(),
       category,

@@ -12,9 +12,9 @@ export default function CheckoutPage() {
   
   // In a real app, you would fetch these details based on the holdId from an API.
   // For demonstration, we simulate the state.
-  const showId = "mock-show-id";
-  const seatIds = ["A-1", "A-2"];
-  const userId = "user-123";
+  const showId = "55551111-5555-1111-5555-111155551111";
+  const seatIds = ["55555555-5555-5555-5555-000000000001", "55555555-5555-5555-5555-000000000002"];
+  const userId = "11111111-1111-1111-1111-111111111111";
   
   // Calculate a mock expiry 10 minutes from now (simulating what the server returned)
   const [expiresAtIso] = useState(() => new Date(Date.now() + 10 * 60 * 1000).toISOString());

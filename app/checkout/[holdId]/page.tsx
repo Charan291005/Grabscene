@@ -61,7 +61,7 @@ export default function CheckoutPage() {
 
   const handleCancel = () => {
     releaseManually();
-    router.push('/shows/123'); // Go back to show map
+    router.push('/shows/55551111-5555-1111-5555-111155551111'); // Go back to show map
   };
 
   const handlePay = async () => {
@@ -216,7 +216,7 @@ export default function CheckoutPage() {
               The time limit for your reservation has expired. The seats have been released back to the public pool.
             </p>
             <button 
-              onClick={() => router.push('/shows/123')}
+              onClick={() => router.push('/shows/55551111-5555-1111-5555-111155551111')}
               className="w-full py-3.5 rounded-xl font-medium bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
             >
               Return to Seat Map

@@ -1,280 +1,237 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { ShowSeat } from "../../types/booking";
-import { cn } from "../../lib/utils";
-import { Lock } from "lucide-react";
+import { MonitorPlay, Sparkles } from "lucide-react";
 
 interface Props {
   seats: ShowSeat[];
-  selectedSeatIds: Set<string>;
-  onSeatClick: (seat: ShowSeat) => void;
-  layout?: "concert" | "arena" | "theater";
+  selectedSeatIds: string[];
+  onSeatClick: (seatId: string) => void;
+  layout?: 'concert' | 'arena' | 'theater';
+  isLoading?: boolean;
 }
 
-export const SeatMap = ({ seats, selectedSeatIds, onSeatClick, layout = "concert" }: Props) => {
+export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater', isLoading = false }: Props) {
+  const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-
-  // Group seats by row
-  const rows = Array.from(new Set(seats.map((s) => s.row))).sort();
-  const seatsByRow = rows.map((row) => ({
-    row,
-    seats: seats
-      .filter((s) => s.row === row)
-      .sort((a, b) => parseInt(a.seatNumber) - parseInt(b.seatNumber)),
-  }));
-  const middleRow = Math.max(0, (rows.length - 1) / 2);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const zoomSensitivity = 0.001;
-      const delta = -e.deltaY * zoomSensitivity;
-      const newScale = Math.min(Math.max(0.5, transform.scale + delta), 3);
-      setTransform((prev) => ({ ...prev, scale: newScale }));
+    const handleResize = () => {
+      if (containerRef.current) {
+        const { width } = containerRef.current.getBoundingClientRect();
+        const newScale = width < 800 ? width / 800 : 1;
+        setScale(newScale);
+      }
     };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-    container.addEventListener("wheel", handleWheel, { passive: false });
-    return () => container.removeEventListener("wheel", handleWheel);
-  }, [transform.scale]);
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - transform.x,
-      y: e.clientY - transform.y,
+  const sectionGrid = useMemo(() => {
+    const sections = new Map<string, Map<string, ShowSeat[]>>();
+    
+    seats.forEach((seat) => {
+      const sectionName = seat.section || seat.category || 'General';
+      if (!sections.has(sectionName)) {
+        sections.set(sectionName, new Map());
+      }
+      const rowMap = sections.get(sectionName)!;
+      if (!rowMap.has(seat.row)) rowMap.set(seat.row, []);
+      rowMap.get(seat.row)!.push(seat);
     });
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+    const result: { sectionName: string; rows: [string, ShowSeat[]][] }[] = [];
+    
+    for (const [sectionName, rowMap] of sections.entries()) {
+      for (const [row, rowSeats] of rowMap.entries()) {
+        rowSeats.sort((a, b) => parseInt(a.seatNumber) - parseInt(b.seatNumber));
+      }
+      result.push({
+        sectionName,
+        rows: Array.from(rowMap.entries()).sort((a, b) => a[0].localeCompare(b[0]))
+      });
+    }
+
+    // Sort sections: VIP/Premium first, then standard
+    result.sort((a, b) => {
+      const aLower = a.sectionName.toLowerCase();
+      const bLower = b.sectionName.toLowerCase();
+      if (aLower.includes('vip') || aLower.includes('premium')) return -1;
+      if (bLower.includes('vip') || bLower.includes('premium')) return 1;
+      return aLower.localeCompare(bLower);
+    });
+    return result;
+  }, [seats]);
+
+  const getSeatColor = (status: ShowSeat["status"], isVip: boolean) => {
+    switch (status) {
+      case "available":
+        return isVip 
+          ? "bg-amber-500/20 border-amber-500/50 hover:bg-amber-500/40 hover:border-amber-400"
+          : "bg-zinc-800 border-zinc-600 hover:bg-cyan-500/30 hover:border-cyan-400";
+      case "held":
+        return "bg-amber-500 border-amber-400 animate-pulse cursor-not-allowed";
+      case "booked":
+        return "bg-zinc-900 border-zinc-800 opacity-50 cursor-not-allowed";
+      default:
+        return "bg-zinc-800 border-zinc-700";
+    }
   };
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    setTransform((prev) => ({
-      ...prev,
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y,
-    }));
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    setIsDragging(false);
-    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-  };
-
-  const getSeatLabel = (seat: ShowSeat) => {
-    const isSelected = selectedSeatIds.has(seat.id);
-    const isLocked = seat.status === "held" && !seat.heldByMe;
-    const isSold = seat.status === "booked";
-    const isHeldByMe = seat.status === "held" && seat.heldByMe;
-
-    let statusText = "available";
-    if (isSelected) statusText = "selected";
-    else if (isHeldByMe) statusText = "held by you";
-    else if (isLocked) statusText = "locked by another user";
-    else if (isSold) statusText = "sold";
-
-    return `Row ${seat.row}, Seat ${seat.seatNumber}, ${seat.category}, $${seat.price}, ${statusText}`;
-  };
+  if (isLoading) {
+    return (
+      <div className="w-full h-96 flex items-center justify-center bg-[#050810] rounded-3xl border border-zinc-800">
+        <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="relative w-full h-full min-h-[620px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#071016] touch-none flex items-center justify-center"
-      ref={containerRef}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerUp}
-      role="application"
-      aria-label="Interactive seat map. Use mouse to pan and zoom, or tab to navigate individual seats."
-      aria-roledescription="seat map"
-    >
-      <div className="absolute inset-4 rounded-[2rem] border border-white/[0.05] bg-[radial-gradient(ellipse_at_center,rgba(19,134,154,0.12),transparent_62%)]" aria-hidden="true" />
-
-      <div className="absolute top-7 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center" aria-hidden="true">
-        <div className="flex h-10 w-56 items-center justify-center rounded-t-[2rem] border border-cyan-300/50 bg-cyan-400/15 text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-200 shadow-[0_0_36px_rgba(50,184,196,0.18)]">
-          Main stage
+    <div className="w-full bg-[#050810] rounded-3xl border border-zinc-800/50 overflow-hidden relative shadow-2xl">
+      
+      {/* Screen / Stage based on layout */}
+      {layout !== 'arena' && (
+        <div className="w-full pt-12 pb-16 relative overflow-hidden flex flex-col items-center">
+          <div className="absolute top-0 w-full h-full bg-gradient-to-b from-cyan-500/10 to-transparent opacity-50"></div>
+          {layout === 'theater' ? (
+            <div className="w-[80%] h-32 absolute -top-16 rounded-[100%] border-b-[8px] border-cyan-500 shadow-[0_20px_60px_rgba(34,211,238,0.4)] bg-black z-10"></div>
+          ) : (
+            <div className="w-[80%] h-8 absolute top-0 border-b-[4px] border-cyan-500 shadow-[0_10px_40px_rgba(34,211,238,0.4)] bg-black z-10"></div>
+          )}
+          <div className="relative z-20 flex flex-col items-center mt-4 text-cyan-400/80">
+            <MonitorPlay className="w-6 h-6 mb-2" />
+            <span className="text-xs font-bold tracking-[0.3em] uppercase">{layout === 'concert' ? 'Main Stage' : 'Stage / Screen'}</span>
+          </div>
         </div>
-        {layout === "concert" && <div className="h-14 w-20 border-x border-cyan-300/35 bg-cyan-400/10" />}
-        <span className="mt-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-cyan-300/60">
-          {layout === "concert" ? "Orchestra pit · catwalk" : layout === "arena" ? "Floor standing" : "Screen / stage"}
-        </span>
-      </div>
+      )}
 
-      <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase tracking-[0.26em] text-zinc-600 [writing-mode:vertical-rl]" aria-hidden="true">West stand</div>
-      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase tracking-[0.26em] text-zinc-600 [writing-mode:vertical-rl]" aria-hidden="true">East stand</div>
-
-      {/* Grid Container */}
-      <div
-        className="relative z-10 origin-center transition-transform duration-75 ease-linear will-change-transform mt-28"
-        style={{
-          transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
-        }}
-      >
-        <div
-          className="flex flex-col gap-3 items-center cursor-grab active:cursor-grabbing rounded-[3rem] border border-white/[0.06] bg-black/10 p-10"
-          role="grid"
-          aria-label="Seat grid"
+      {/* Seat Grid */}
+      <div ref={containerRef} className="w-full overflow-x-auto pb-24 px-4 scrollbar-hide">
+        <div 
+          className={`mx-auto flex flex-col items-center min-w-[max-content] pb-10 ${layout === 'arena' ? 'pt-16' : ''}`}
+          style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}
         >
-          {seatsByRow.map(({ row, seats: rowSeats }, rowIndex) => (
-            <div
-              key={row}
-              className={cn("flex items-center", layout === "concert" ? "gap-3" : "gap-4")}
-              style={layout === "concert" ? {
-                transform: `translateX(${Math.round(Math.sin((rowIndex / Math.max(rows.length - 1, 1)) * Math.PI) * 52 - 26)}px) scaleX(${1 + Math.sin((rowIndex / Math.max(rows.length - 1, 1)) * Math.PI) * 0.08})`,
-              } : undefined}
-              role="row"
-            >
-              <div
-                className="w-7 text-right font-mono text-[10px] font-semibold tracking-wider text-zinc-500 select-none"
-                aria-hidden="true"
-              >
-                {row}
-              </div>
-              <div className={cn("flex gap-1.5 rounded-full px-2 py-1", rowIndex >= middleRow ? "bg-white/[0.025]" : "bg-cyan-300/[0.025]", layout === "concert" && "[&>button:nth-child(10)]:mr-5")} role="rowgroup">
-                {rowSeats.map((seat) => {
-                  const isSelected = selectedSeatIds.has(seat.id);
-                  const isAvailable = seat.status === "available";
-                  const isHeldByMe =
-                    seat.status === "held" && seat.heldByMe;
-                  const isLocked =
-                    seat.status === "held" && !seat.heldByMe;
-                  const isSold = seat.status === "booked";
-
-                  let categoryStyles = "";
-                  if (seat.category === "VIP")
-                    categoryStyles =
-                      "bg-amber-500/20 border-amber-400/50 text-amber-500 hover:border-amber-400 hover:shadow-[0_0_12px_rgba(251,191,36,0.4)]";
-                  if (seat.category === "Premium")
-                    categoryStyles =
-                      "bg-indigo-500/20 border-indigo-400/50 text-indigo-400 hover:border-indigo-400 hover:shadow-[0_0_12px_rgba(99,102,241,0.4)]";
-                  if (seat.category === "Standard")
-                    categoryStyles =
-                      "bg-slate-600/20 border-slate-500/50 text-slate-300 hover:border-slate-400 hover:shadow-[0_0_12px_rgba(148,163,184,0.4)]";
-
-                  return (
-                    <button
-                      key={seat.id}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (isAvailable || isSelected) {
-                          onSeatClick(seat);
-                        }
-                      }}
-                      disabled={
-                        isLocked || isSold || (isHeldByMe && !isSelected)
-                      }
-                      role="gridcell"
-                      aria-label={getSeatLabel(seat)}
-                      aria-pressed={isSelected}
-                      aria-disabled={
-                        isLocked || isSold || (isHeldByMe && !isSelected)
-                      }
-                      className={cn(
-                        "group relative h-7 w-7 rounded-[5px] border transition-all duration-200 flex items-center justify-center text-[9px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071016]",
-                        isAvailable && !isSelected && categoryStyles,
-                        isSelected &&
-                          "bg-emerald-500/30 border-emerald-400 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.5)] scale-110 z-10",
-                        isHeldByMe &&
-                          !isSelected &&
-                          "bg-emerald-500/20 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] cursor-not-allowed",
-                        isLocked &&
-                          "bg-amber-900/40 border-amber-700/50 cursor-not-allowed",
-                        isSold &&
-                          "bg-slate-800 opacity-30 border-slate-700 cursor-not-allowed"
-                      )}
-                    >
-                      <div
-                        className="absolute bottom-1 w-3/4 h-1 bg-white/10 rounded-full"
-                        aria-hidden="true"
-                      />
-
-                      {isLocked && (
-                        <div
-                          className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(251,191,36,0.1)_2px,rgba(251,191,36,0.1)_4px)] rounded-t-lg rounded-b-sm pointer-events-none"
-                          aria-hidden="true"
-                        />
-                      )}
-                      {isLocked && (
-                        <Lock
-                          className="w-3 h-3 text-amber-500/50 absolute z-10"
-                          aria-hidden="true"
-                        />
-                      )}
-
-                      {!isLocked && !isSold && (
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          {seat.seatNumber}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <div
-                className="w-7 text-left font-mono text-[10px] font-semibold tracking-wider text-zinc-500 select-none"
-                aria-hidden="true"
-              >
-                {row}
-              </div>
+          
+          {layout === 'arena' && (
+            <div className="w-64 h-32 bg-zinc-900 border border-zinc-700 rounded-3xl flex flex-col items-center justify-center text-zinc-500 font-bold tracking-widest uppercase mb-16 shadow-[0_0_50px_rgba(255,255,255,0.05)]">
+              <Sparkles className="w-5 h-5 mb-2 text-zinc-600" />
+              Center Stage
             </div>
-          ))}
+          )}
+
+          <div className={layout === 'arena' ? 'flex flex-wrap justify-center gap-20 max-w-4xl' : 'flex flex-col gap-12'}>
+            {sectionGrid.map(({ sectionName, rows }) => (
+              <div key={sectionName} className="flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30">
+                <h3 className="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-6 px-6 py-2 border border-zinc-800 rounded-full bg-zinc-900/80 shadow-lg flex items-center gap-2">
+                  {(sectionName.toLowerCase().includes('vip') || sectionName.toLowerCase().includes('premium')) && <Sparkles className="w-3 h-3 text-amber-500" />}
+                  {sectionName}
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {rows.map(([row, rowSeats]) => (
+                    <div key={row} className="flex items-center gap-6 justify-center group">
+                      <div className="w-8 text-center text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors">
+                        {row}
+                      </div>
+
+                      <div className="flex gap-4">
+                        {rowSeats.length > 10 ? (
+                          <>
+                            <div className="flex gap-1.5">
+                              {rowSeats.slice(0, Math.floor(rowSeats.length / 3)).map((seat) => (
+                                <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
+                              ))}
+                            </div>
+                            <div className="flex gap-1.5 px-4 border-x border-zinc-800/50">
+                              {rowSeats.slice(Math.floor(rowSeats.length / 3), Math.floor(rowSeats.length * 2 / 3)).map((seat) => (
+                                <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
+                              ))}
+                            </div>
+                            <div className="flex gap-1.5">
+                              {rowSeats.slice(Math.floor(rowSeats.length * 2 / 3)).map((seat) => (
+                                <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex gap-1.5">
+                            {rowSeats.map((seat) => (
+                              <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="w-8 text-center text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors">
+                        {row}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Zoom controls */}
-      <div
-        className="absolute bottom-6 right-6 flex flex-col gap-2 z-20"
-        role="toolbar"
-        aria-label="Zoom controls"
-      >
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setTransform({ x: 0, y: 0, scale: 1 });
-          }}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900/90 text-xs font-semibold text-zinc-300 backdrop-blur transition-colors hover:border-cyan-400 hover:text-cyan-300"
-          aria-label="Reset map view"
-          title="Reset map view"
-        >
-          1:1
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setTransform((p) => ({
-              ...p,
-              scale: Math.min(3, p.scale + 0.2),
-            }));
-          }}
-          className="w-10 h-10 bg-zinc-800/80 hover:bg-zinc-700 backdrop-blur border border-zinc-700 rounded-full flex items-center justify-center text-zinc-300 transition-colors"
-          aria-label="Zoom in"
-        >
-          +
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setTransform((p) => ({
-              ...p,
-              scale: Math.max(0.5, p.scale - 0.2),
-            }));
-          }}
-          className="w-10 h-10 bg-zinc-800/80 hover:bg-zinc-700 backdrop-blur border border-zinc-700 rounded-full flex items-center justify-center text-zinc-300 transition-colors"
-          aria-label="Zoom out"
-        >
-          -
-        </button>
+      {/* Modern Legend */}
+      <div className="absolute bottom-0 left-0 w-full bg-[#0c111d]/90 backdrop-blur-xl border-t border-zinc-800/50 p-4 flex flex-wrap items-center justify-center gap-6 text-sm">
+        <div className="flex items-center gap-2 text-zinc-300">
+          <div className="w-5 h-5 rounded-md bg-zinc-800 border border-zinc-600 shadow-inner"></div>
+          <span>Available</span>
+        </div>
+        <div className="flex items-center gap-2 text-amber-400">
+          <div className="w-5 h-5 rounded-md bg-amber-500/20 border border-amber-500/50 flex items-center justify-center shadow-inner">
+            <Sparkles className="w-3 h-3" />
+          </div>
+          <span>VIP / Premium</span>
+        </div>
+        <div className="flex items-center gap-2 text-amber-500">
+          <div className="w-5 h-5 rounded-md bg-amber-500 border border-amber-400 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+          <span>Held by Others</span>
+        </div>
+        <div className="flex items-center gap-2 text-zinc-600">
+          <div className="w-5 h-5 rounded-md bg-zinc-900 border border-zinc-800 opacity-50 relative overflow-hidden">
+            <div className="absolute inset-0 border-t-2 border-red-500/20 rotate-45 scale-150 transform origin-center"></div>
+          </div>
+          <span>Sold Out</span>
+        </div>
       </div>
     </div>
   );
-};
+}
+
+function SeatButton({ seat, onSelect, getColor, isSelected }: { seat: ShowSeat, onSelect: (id: string) => void, getColor: any, isSelected: boolean }) {
+  const isVip = seat.category === "VIP" || seat.category === "Premium";
+  const colorClass = getColor(seat.status, isVip);
+  const isDisabled = seat.status === "booked" || seat.status === "held";
+
+  return (
+    <button
+      type="button"
+      disabled={isDisabled}
+      onClick={() => onSelect(seat.id)}
+      className={`
+        relative w-7 h-8 rounded-t-lg rounded-b-sm border-t-2 border-x-2 border-b-4 
+        transition-all duration-200 transform hover:-translate-y-1 hover:shadow-lg
+        flex flex-col items-center justify-start pt-1 group
+        ${isSelected ? 'bg-cyan-500 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-110 z-10' : colorClass}
+        ${!isDisabled && isVip && !isSelected ? 'shadow-[0_0_10px_rgba(245,158,11,0.1)]' : ''}
+      `}
+      title={`${seat.section || seat.category} - Row ${seat.row} Seat ${seat.seatNumber} - $${seat.price}`}
+      aria-label={`${seat.category} seat ${seat.row}${seat.seatNumber} - ${seat.status}`}
+    >
+      <span className="text-[9px] font-bold text-white/50 group-hover:text-white transition-colors">{seat.seatNumber}</span>
+      
+      {/* Armrests simulation */}
+      <div className="absolute top-2 -left-[1px] w-[2px] h-3 bg-black/20 rounded-full"></div>
+      <div className="absolute top-2 -right-[1px] w-[2px] h-3 bg-black/20 rounded-full"></div>
+      
+      {/* VIP Star */}
+      {isVip && !isDisabled && (
+        <Sparkles className="absolute -top-2 w-3 h-3 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+      )}
+    </button>
+  );
+}

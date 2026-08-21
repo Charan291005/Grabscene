@@ -29,10 +29,15 @@ export default function DashboardOverview() {
             <h1 className="text-3xl font-bold text-white tracking-tight">Organiser Dashboard</h1>
             <p className="text-zinc-400 mt-1">Overview of your events and revenue metrics.</p>
           </div>
-          <Link href="/dashboard/events/new" className="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-cyan-950 font-semibold rounded-xl flex items-center gap-2 transition-colors">
-            <Plus className="w-5 h-5" />
-            Create Event
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/admin/venues" className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold rounded-xl flex items-center gap-2 transition-colors border border-zinc-700">
+              Manage Venues
+            </Link>
+            <Link href="/dashboard/events/new" className="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-cyan-950 font-semibold rounded-xl flex items-center gap-2 transition-colors">
+              <Plus className="w-5 h-5" />
+              Create Event
+            </Link>
+          </div>
         </div>
 
         {/* Metrics Grid */}

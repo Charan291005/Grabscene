@@ -9,26 +9,65 @@ interface Props {
   onClose: () => void;
   category: SeatCategory;
   showId: string;
+  userId?: string;
+  sectionId?: string;
 }
 
-export const WaitlistModal = ({ isOpen, onClose, category, showId }: Props) => {
+export const WaitlistModal = ({ isOpen, onClose, category, showId, userId, sectionId }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  
-  // Mock data for queue depth
-  const queueDepth = category === 'VIP' ? 12 : category === 'Premium' ? 45 : 120;
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleJoin = async () => {
-    setIsSubmitting(true);
-    // Simulate API call to join waitlist via join_waitlist RPC
-    await new Promise(res => setTimeout(res, 1500));
-    setIsSubmitting(false);
-    setIsSuccess(true);
+    if (!userId) {
+      window.location.href = '/auth/login';
+      return;
+    }
     
-    setTimeout(() => {
-      onClose();
-      setIsSuccess(false);
-    }, 3000);
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/waitlist/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          showId,
+          sectionId: sectionId || null,
+          userId: userId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 409) {
+          setError("You're already on the waitlist for this section.");
+        } else {
+          setError(data.error || 'Failed to join waitlist.');
+        }
+        setIsSubmitting(false);
+        return;
+      }
+
+      setQueuePosition(data.queuePosition || null);
+      setIsSubmitting(false);
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        onClose();
+        // Reset state for next open
+        setTimeout(() => {
+          setIsSuccess(false);
+          setQueuePosition(null);
+          setError(null);
+        }, 300);
+      }, 3000);
+    } catch {
+      setError('An unexpected error occurred.');
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -38,7 +77,7 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId }: Props) => {
       <div className="bg-[#0c111d] border border-zinc-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative">
         <button 
           type="button"
-          onClick={onClose}
+          onClick={() => { onClose(); setTimeout(() => { setIsSuccess(false); setError(null); setQueuePosition(null); }, 300); }}
           className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
           aria-label="Close waitlist dialog"
         >
@@ -56,16 +95,26 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId }: Props) => {
               The {category} section is currently sold out. Join the waitlist to be notified instantly if a seat becomes available.
             </p>
 
-            <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 mb-8 flex justify-between items-center">
+            <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 mb-6 flex justify-between items-center">
               <div>
                 <p className="text-sm text-zinc-500">Selected Category</p>
                 <p className="font-semibold text-white">{category}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-zinc-500">Queue Depth</p>
-                <p className="font-semibold text-cyan-400">{queueDepth} people ahead</p>
+                <p className="text-sm text-zinc-500">Auto-assignment</p>
+                <p className="font-semibold text-emerald-400">Enabled</p>
               </div>
             </div>
+
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 mb-8 text-sm text-amber-400/80">
+              <p>When a seat opens, you'll receive an email with a <strong>10-minute time-limited link</strong> to claim it. If you don't act in time, it goes to the next person.</p>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm" role="alert">
+                {error}
+              </div>
+            )}
 
             <button 
               type="button"
@@ -85,10 +134,15 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId }: Props) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">You're on the list!</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">You&apos;re on the list!</h2>
             <p className="text-zinc-400">
               We'll email you immediately if a {category} ticket becomes available. You will have 10 minutes to claim it.
             </p>
+            {queuePosition && (
+              <p className="text-cyan-400 font-semibold mt-4">
+                Your position: #{queuePosition}
+              </p>
+            )}
           </div>
         )}
       </div>

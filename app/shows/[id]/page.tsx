@@ -18,20 +18,25 @@ export default function ShowBookingPage() {
   const router = useRouter();
   const showId = typeof params.id === 'string' ? params.id : 'default-show';
   const event = getEvent(showId);
-  const [currentUserId] = useState(() => {
-    if (typeof window === 'undefined') return 'demo-user';
-    const existingUserId = window.sessionStorage.getItem('grabscene_demo_user');
-    if (existingUserId) return existingUserId;
-    const demoUsers = [
-      '33333333-3333-3333-3333-333333333333',
-      '44444444-4444-4444-4444-444444444444',
-    ];
-    const userId = demoUsers[Math.floor(Math.random() * demoUsers.length)];
-    window.sessionStorage.setItem('grabscene_demo_user', userId);
-    return userId;
-  });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    import('../../../lib/supabase-browser').then(({ supabaseBrowser }) => {
+      supabaseBrowser.auth.getSession().then(({ data: { session } }) => {
+        setCurrentUserId(session?.user?.id || null);
+      });
+      
+      const {
+        data: { subscription },
+      } = supabaseBrowser.auth.onAuthStateChange((_event, session) => {
+        setCurrentUserId(session?.user?.id || null);
+      });
+
+      return () => subscription.unsubscribe();
+    });
+  }, []);
   
-  const { seats, optimisticHoldSeats } = useShowSeatsRealtime(showId, createDemoSeats(showId) as ShowSeat[], currentUserId);
+  const { seats, optimisticHoldSeats } = useShowSeatsRealtime(showId, createDemoSeats(showId) as ShowSeat[], currentUserId || '');
   const [selectedSeatIds, setSelectedSeatIds] = useState<Set<string>>(new Set());
   const [isHolding, setIsHolding] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
@@ -43,13 +48,13 @@ export default function ShowBookingPage() {
   const selectedSeats = seats.filter(s => selectedSeatIds.has(s.id));
   const availableSeats = seats.filter((seat) => seat.status === 'available').length;
 
-  const handleSeatClick = (seat: ShowSeat) => {
+  const handleSeatClick = (seatId: string) => {
     setSelectedSeatIds(prev => {
       const next = new Set(prev);
-      if (next.has(seat.id)) {
-        next.delete(seat.id);
+      if (next.has(seatId)) {
+        next.delete(seatId);
       } else if (next.size < 8) {
-        next.add(seat.id);
+        next.add(seatId);
       } else {
         setToast({ message: 'You can select up to 8 tickets per booking.', type: 'error' });
       }
@@ -58,6 +63,11 @@ export default function ShowBookingPage() {
   };
 
   const handleProceed = async () => {
+    if (!currentUserId) {
+      router.push('/auth/login');
+      return;
+    }
+    
     setIsHolding(true);
     setToast(null);
     const ids = Array.from(selectedSeatIds);
@@ -117,7 +127,7 @@ export default function ShowBookingPage() {
           <div className="flex-1 relative rounded-2xl overflow-hidden shadow-2xl bg-[#090D16] border border-zinc-800/50">
             <SeatMap 
               seats={seats}
-              selectedSeatIds={selectedSeatIds}
+              selectedSeatIds={Array.from(selectedSeatIds)}
               onSeatClick={handleSeatClick}
               layout={showId === '55551111-5555-1111-5555-111155551111' ? 'concert' : showId === '55556666-5555-6666-5555-666655556666' ? 'arena' : 'theater'}
             />
@@ -160,6 +170,7 @@ export default function ShowBookingPage() {
             onClose={() => setIsWaitlistOpen(false)}
             category={waitlistCategory}
             showId={showId}
+            userId={currentUserId || ''}
           />
         </div>
       </div>

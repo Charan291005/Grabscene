@@ -1,35 +1,80 @@
-# GrabScene System Design Architecture
+# GrabScene System Design & Architecture
 
-## 1. Concurrency Protection for Simultaneous Seat Selection
+This document provides a comprehensive technical overview of the GrabScene ticket booking platform, focusing specifically on the high-concurrency booking engine, seat hold mechanisms (TTL), waitlist flow, and the backend concurrency protection that makes the system robust against massive traffic spikes.
 
-GrabScene is engineered to handle thousands of concurrent users competing for the same high-demand inventory. To prevent double-booking and ensure strict ACID compliance, all state mutations are deferred to the database layer via PostgreSQL Remote Procedure Calls (RPCs). 
+## 1. Concurrency Protection & Acid Transactions
 
-When a user attempts to select seats, the `hold_seats` RPC executes. Instead of relying on client-side state or vulnerable application-layer checks, the database employs pessimistic Row-Level Locking (`SELECT ... FOR UPDATE`). Crucially, to prevent deadlocks when multiple transactions attempt to lock overlapping sets of seats, the RPC enforces a deterministic locking order by appending `ORDER BY id` to the selection query. 
+In a high-demand ticketing system (e.g., BookMyShow, Ticketmaster), the most critical failure point is when thousands of users attempt to purchase the exact same seat simultaneously. 
 
-Furthermore, every seat incorporates a `version` integer column. Whenever a seat's state transitions (from available to held, or held to booked), the version increments. This guarantees idempotent transactions; if a race condition sneaks past the initial lock acquisition, the version mismatch will abort the conflicting transaction. Optimistic UI updates on the client side instantly turn the seat green to simulate a lock, but gracefully revert with an error toast if the RPC fails.
+### Mechanism: Row-Level Locking (`SELECT FOR UPDATE`)
+GrabScene solves this entirely within the PostgreSQL database using ACID-compliant transactions and row-level locking.
 
-## 2. Seat Hold TTL and Auto-Release Mechanism
+When a customer attempts to place a hold on seats (via the `/api/seats/hold` endpoint), the backend initiates a transaction and executes the `hold_seats` Remote Procedure Call (RPC). 
+The core of this RPC is:
+```sql
+SELECT id, status 
+FROM show_seats 
+WHERE id = ANY(p_seat_ids) 
+ORDER BY id 
+FOR UPDATE;
+```
 
-To prevent users from indefinitely hoarding inventory without purchasing, GrabScene enforces a strict 10-minute Time-To-Live (TTL) on all active holds. 
+**Why this works:**
+- **`FOR UPDATE`**: This clause forces the database to lock the specific rows being read. If User A and User B request the same seat at the exact same millisecond, the database serialises their requests. User A gets the lock, updates the status to `held`, and commits. User B's transaction waits for the lock. When it finally reads the row, the status is already `held`, and the transaction gracefully fails.
+- **`ORDER BY id`**: This prevents deadlocks. If User A requests seats [1, 2] and User B requests seats [2, 1], locking them in arbitrary order could cause a deadlock where A waits for 2 and B waits for 1. By sorting the IDs before locking, both users request the locks in the exact same sequence.
 
-This mechanism is driven by a dual-layer architecture:
-- **Client Synchronization**: The frontend timer (`useHoldTimer`) calculates remaining time strictly against the server-generated `hold_expires_at` timestamp. This neutralizes client-side clock tampering. Furthermore, attaching a `keepalive: true` fetch beacon to the `beforeunload` browser event ensures that if a user abandons their tab, the database immediately reclaims the hold.
-- **Server Sweeper**: To catch orphaned holds (e.g., from network drops or browser crashes), we utilize the `pg_cron` PostgreSQL extension. A background worker executes the `release_expired_holds` RPC every 60 seconds. This query rapidly scans the `show_seats` table for rows where `status = 'held'` and `hold_expires_at < NOW()`, atomically reverting them to `available` and clearing the lock.
+## 2. Seat Hold and TTL (Time-To-Live) Mechanism
 
-## 3. Waitlist Auto-Assignment & Time-Limited Offer Flow
+When users select seats, they are placed on "hold" to give them time to complete checkout without losing their seats.
 
-Sold-out events activate GrabScene’s Priority Waitlist Engine. This system guarantees fair, automated reallocation of cancelled inventory without manual organiser intervention.
+### Mechanism: Timestamp Expiry and Cron Processing
+When the `hold_seats` RPC runs successfully, it updates the `show_seats` row:
+- `status` -> `held`
+- `held_by` -> `user_id`
+- `hold_expires_at` -> `NOW() + INTERVAL '10 minutes'`
 
-The `waitlist` table operates as a strict, monotonic FIFO queue, enforced by a `position` serial column. When a confirmed booking is cancelled, the `cancel_booking_and_reallocate` RPC triggers an atomic reallocation cascade. It retrieves the freed seats and simultaneously scans the waitlist for the earliest user matching the specific venue category.
+**Auto-Release (Abandonment)**
+If the user closes their browser or abandons the checkout, the seats must be returned to the available pool. We do not rely on the frontend or a single long-running Node.js timeout for this, as servers can crash. 
+Instead, we use a database-driven cron job.
 
-If a match is found, the transaction bypasses the public pool entirely. It instantly transitions the seat back to a `held` state assigned to the waitlisted user. Simultaneously, it generates a cryptographically secure `offer_token` (UUIDv4) and injects a new 10-minute TTL (`offer_expires_at`). A transactional email is dispatched via Resend, directing the user to a secure `/checkout/claim` route. 
+We use `pg_cron` (via Supabase) to trigger the `release_expired_holds` RPC every minute:
+```sql
+UPDATE show_seats
+SET status = 'available', held_by = NULL, hold_expires_at = NULL
+WHERE status = 'held' AND hold_expires_at < NOW();
+```
+This guarantees that orphaned holds are aggressively purged and the seat map is updated for all users in real-time.
 
-If the user fails to complete the purchase within the window, a Next.js Edge cron route (`/api/cron/process-expired-offers`) sweeps the expired offer and recursively invokes the reallocation logic, passing the ticket to the next person in line.
+## 3. Waitlist Auto-Assignment Flow
 
-## 4. Seat Map Data Model & Real-Time WebSocket Architecture
+When high-demand events sell out (i.e. all seats are `booked`), customers can join a waitlist for specific categories (e.g., VIP, Standard).
 
-The visual core of GrabScene is the interactive seat map, designed to reflect the live heartbeat of an event.
+### Mechanism: FIFO Queue
+When joining the waitlist, the `join_waitlist` RPC calculates the user's priority based on their `created_at` timestamp. It acts as a strict First-In-First-Out (FIFO) queue.
 
-The data model normalizes physical infrastructure and temporal event data. The `seats` table defines the immutable physical layout of a venue (sections, rows, seat numbers). The `show_seats` table acts as the volatile junction, linking a specific performance (`show_id`) to a physical seat (`seat_id`), while tracking price, current status (`available`, `held`, `booked`), and the ephemeral lock owner.
+### Reallocation Cascade
+When a confirmed booking is cancelled, we do not simply release the seat back to the public pool. Instead, the `cancel_booking_and_reallocate` RPC is triggered.
 
-To achieve real-time presence without crippling the database with polling queries, the platform leverages Supabase Realtime (PostgreSQL logical replication over WebSockets). The `useShowSeatsRealtime` React hook subscribes exclusively to `UPDATE` events on the `show_seats` table filtered by the active `show_id`. When a seat's status changes anywhere in the world, the database broadcasts the row delta. The client’s React state merges this payload instantly, causing the SVG map to dynamically shift colors—rendering the high-concurrency booking frenzy visible to all connected users in real-time.
+1. **Cancellation**: The booking is voided.
+2. **Reallocation Check**: The system searches the `waitlist` table for the oldest entry matching the `show_id` and `category` of the cancelled seat.
+3. **Status Update**: If a match is found, the waitlist entry's status is changed from `pending` to `offered`.
+4. **Time-Limited Offer**: The `offer_expires_at` timestamp is set (e.g., NOW + 10 minutes). The seat's status remains pseudo-booked so the general public cannot grab it.
+
+## 4. Time-Limited Offer Handling and Notification
+
+Once a waitlist entry enters the `offered` state, two things happen:
+
+### Email Delivery
+The backend API detects the reallocation and triggers a Resend email containing a time-limited link: `grabscene.com/checkout/claim?token=[waitlist_id]`. This email (built with React Email) uses high-urgency messaging to prompt the user to claim their seat.
+
+### Offer Expiry Cascade
+Similar to seat holds, waitlist offers can be abandoned. We run another background cron (`cycle_expired_offers`) every minute.
+If an offer expires without being claimed, the RPC:
+1. Marks the current waitlist entry as `expired`.
+2. Automatically loops back to the reallocation phase, finding the *next* person in line.
+3. Creates a new time-limited offer for them.
+
+This creates a highly efficient, automated cascade where a single cancelled ticket bounces down the waitlist until someone finally purchases it, ensuring the organiser achieves maximum revenue without manual intervention.
+
+## Summary
+By offloading state management, concurrency control, and TTL expirations to the PostgreSQL database via stored procedures and row-locking, the Node.js API remains purely stateless and horizontally scalable. This design ensures GrabScene can handle immense ticket drop traffic without race conditions or data corruption.

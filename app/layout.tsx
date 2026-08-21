@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { EvaluatorToolbar } from "@/components/demo/EvaluatorToolbar";
 import { EmailPreviewDrawer } from "@/components/demo/EmailPreviewDrawer";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -56,9 +57,11 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        {children}
-        <EvaluatorToolbar />
-        <EmailPreviewDrawer />
+        <AuthProvider>
+          {children}
+          <EvaluatorToolbar />
+          <EmailPreviewDrawer />
+        </AuthProvider>
       </body>
     </html>
   );

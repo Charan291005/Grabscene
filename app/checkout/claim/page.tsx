@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { HoldCountdownTimer } from '../../../components/booking/HoldCountdownTimer';
 import { Clock, CheckCircle2 } from 'lucide-react';
 
-export default function ClaimPage() {
+function ClaimPageContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const router = useRouter();
@@ -182,5 +182,13 @@ export default function ClaimPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ClaimPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#050810] flex items-center justify-center text-zinc-400">Loading...</div>}>
+      <ClaimPageContent />
+    </Suspense>
   );
 }

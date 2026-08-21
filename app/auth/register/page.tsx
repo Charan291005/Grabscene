@@ -30,6 +30,11 @@ export default function RegisterPage() {
     const { data, error: authError } = await supabaseBrowser.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          role,
+        },
+      },
     });
 
     if (authError) {
@@ -38,17 +43,10 @@ export default function RegisterPage() {
       return;
     }
 
-    // Create profile with chosen role
-    if (data.user) {
-      const { error: profileError } = await supabaseBrowser.from("profiles").upsert({
-        id: data.user.id,
-        email,
-        role,
-      });
-
-      if (profileError) {
-        console.error("Profile creation error:", profileError);
-      }
+    if (data.user && !data.session) {
+      setError("Please check your email to confirm your account before logging in.");
+      setIsLoading(false);
+      return;
     }
 
     router.push("/");

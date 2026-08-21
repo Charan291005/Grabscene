@@ -8,15 +8,23 @@ interface Props {
   selectedSeats: ShowSeat[];
   onProceed: () => void;
   isLoading: boolean;
+  maxTickets?: number;
   onOpenWaitlist?: (category: 'VIP' | 'Premium' | 'Standard') => void;
 }
 
-export const BookingSummarySidebar = ({ selectedSeats, onProceed, isLoading, onOpenWaitlist }: Props) => {
+export const BookingSummarySidebar = ({ selectedSeats, onProceed, isLoading, onOpenWaitlist, maxTickets = 8 }: Props) => {
   const total = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+  const serviceFee = selectedSeats.length * 2.5;
 
   return (
     <div className="w-full lg:w-80 bg-[#0c111d] border border-zinc-800 rounded-2xl p-6 flex flex-col h-full text-zinc-100 shadow-2xl">
-      <h2 className="text-xl font-bold mb-6 tracking-tight text-white">Booking Summary</h2>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-white">Booking Summary</h2>
+          <p className="mt-1 text-xs text-zinc-500">Up to {maxTickets} tickets per order</p>
+        </div>
+        <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2 py-1 text-xs font-semibold text-cyan-300">{selectedSeats.length}/{maxTickets}</span>
+      </div>
       
       <div className="flex-1 overflow-y-auto mb-6 pr-2">
         {selectedSeats.length === 0 ? (
@@ -56,10 +64,18 @@ export const BookingSummarySidebar = ({ selectedSeats, onProceed, isLoading, onO
         )}
       </div>
 
-      <div className="pt-4 border-t border-zinc-800 space-y-4">
+      <div className="space-y-2 border-t border-zinc-800 pt-4">
+        <div className="flex justify-between text-sm text-zinc-500">
+          <span>Tickets</span>
+          <span>${total.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-sm text-zinc-500">
+          <span>Booking fee</span>
+          <span>${serviceFee.toFixed(2)}</span>
+        </div>
         <div className="flex justify-between items-end">
           <span className="text-zinc-400">Total</span>
-          <span className="text-2xl font-bold text-white">${total.toFixed(2)}</span>
+          <span className="text-2xl font-bold text-white">${(total + serviceFee).toFixed(2)}</span>
         </div>
         
         <button 

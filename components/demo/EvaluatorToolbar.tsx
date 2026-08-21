@@ -5,7 +5,7 @@ import { FastForward, Clock, XSquare, Settings2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export const EvaluatorToolbar = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   
   const fastForwardHolds = async () => {
@@ -36,7 +36,7 @@ export const EvaluatorToolbar = () => {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 left-4 z-50 p-3 bg-indigo-500/20 backdrop-blur-md border border-indigo-500/50 rounded-full text-indigo-400 hover:bg-indigo-500/30 transition-colors shadow-2xl"
+        className="fixed bottom-4 left-4 z-50 p-3 bg-zinc-950/90 backdrop-blur-md border border-indigo-500/50 rounded-full text-indigo-400 hover:bg-indigo-500/30 transition-colors shadow-2xl"
         title="Open Evaluator Suite"
       >
         <Settings2 className="w-5 h-5" />
@@ -45,7 +45,7 @@ export const EvaluatorToolbar = () => {
   }
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black/80 backdrop-blur-xl border border-indigo-500/30 rounded-full p-2 shadow-[0_10px_40px_rgba(99,102,241,0.2)] flex items-center gap-1">
+    <div className="fixed bottom-4 left-1/2 z-50 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-2xl border border-indigo-500/30 bg-black/90 p-2 shadow-[0_10px_40px_rgba(99,102,241,0.2)] backdrop-blur-xl">
       <div className="px-4 border-r border-white/10 flex items-center">
         <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">Evaluator Suite</span>
       </div>

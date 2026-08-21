@@ -26,6 +26,7 @@ export const SeatMap = ({ seats, selectedSeatIds, onSeatClick, layout = "concert
       .filter((s) => s.row === row)
       .sort((a, b) => parseInt(a.seatNumber) - parseInt(b.seatNumber)),
   }));
+  const middleRow = Math.max(0, (rows.length - 1) / 2);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -83,7 +84,7 @@ export const SeatMap = ({ seats, selectedSeatIds, onSeatClick, layout = "concert
 
   return (
     <div
-      className="relative w-full h-full min-h-[500px] overflow-hidden bg-[#090D16] rounded-2xl border border-zinc-800/50 touch-none flex items-center justify-center"
+      className="relative w-full h-full min-h-[620px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#071016] touch-none flex items-center justify-center"
       ref={containerRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -93,51 +94,49 @@ export const SeatMap = ({ seats, selectedSeatIds, onSeatClick, layout = "concert
       aria-label="Interactive seat map. Use mouse to pan and zoom, or tab to navigate individual seats."
       aria-roledescription="seat map"
     >
-      {/* Venue orientation keeps the map readable at a glance like a real ticketing venue map. */}
-      <div
-        className="absolute top-8 left-1/2 -translate-x-1/2 w-3/4 max-w-2xl h-12 pointer-events-none z-10 flex flex-col items-center"
-        aria-hidden="true"
-      >
-        <div className="w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent rounded-full opacity-50 blur-[2px]" />
-        <div
-          className={cn(
-            "w-full h-8 bg-gradient-to-b from-cyan-500/20 via-blue-500/10 to-transparent",
-            layout === "concert" && "h-12"
-          )}
-          style={{ clipPath: "ellipse(50% 100% at 50% 0%)" }}
-        />
-        <span className="text-xs font-medium tracking-[0.3em] text-cyan-500/50 uppercase mt-2">
-          {layout === "concert" ? "Main stage · orchestra pit" : layout === "arena" ? "Main stage · floor standing" : "Screen / stage"}
+      <div className="absolute inset-4 rounded-[2rem] border border-white/[0.05] bg-[radial-gradient(ellipse_at_center,rgba(19,134,154,0.12),transparent_62%)]" aria-hidden="true" />
+
+      <div className="absolute top-7 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center" aria-hidden="true">
+        <div className="flex h-10 w-56 items-center justify-center rounded-t-[2rem] border border-cyan-300/50 bg-cyan-400/15 text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-200 shadow-[0_0_36px_rgba(50,184,196,0.18)]">
+          Main stage
+        </div>
+        {layout === "concert" && <div className="h-14 w-20 border-x border-cyan-300/35 bg-cyan-400/10" />}
+        <span className="mt-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-cyan-300/60">
+          {layout === "concert" ? "Orchestra pit · catwalk" : layout === "arena" ? "Floor standing" : "Screen / stage"}
         </span>
       </div>
 
-      {layout === "concert" && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 rounded-full border border-amber-400/30 bg-amber-500/10 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-amber-300/80">
-          Orchestra pit
-        </div>
-      )}
+      <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase tracking-[0.26em] text-zinc-600 [writing-mode:vertical-rl]" aria-hidden="true">West stand</div>
+      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase tracking-[0.26em] text-zinc-600 [writing-mode:vertical-rl]" aria-hidden="true">East stand</div>
 
       {/* Grid Container */}
       <div
-        className="origin-center transition-transform duration-75 ease-linear will-change-transform mt-20"
+        className="relative z-10 origin-center transition-transform duration-75 ease-linear will-change-transform mt-28"
         style={{
           transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
         }}
       >
         <div
-          className="flex flex-col gap-4 items-center cursor-grab active:cursor-grabbing p-12"
+          className="flex flex-col gap-3 items-center cursor-grab active:cursor-grabbing rounded-[3rem] border border-white/[0.06] bg-black/10 p-10"
           role="grid"
           aria-label="Seat grid"
         >
-          {seatsByRow.map(({ row, seats: rowSeats }) => (
-            <div key={row} className="flex gap-4 items-center" role="row">
+          {seatsByRow.map(({ row, seats: rowSeats }, rowIndex) => (
+            <div
+              key={row}
+              className={cn("flex items-center", layout === "concert" ? "gap-3" : "gap-4")}
+              style={layout === "concert" ? {
+                transform: `translateX(${Math.round(Math.sin((rowIndex / Math.max(rows.length - 1, 1)) * Math.PI) * 52 - 26)}px) scaleX(${1 + Math.sin((rowIndex / Math.max(rows.length - 1, 1)) * Math.PI) * 0.08})`,
+              } : undefined}
+              role="row"
+            >
               <div
-                className="w-6 text-right font-mono text-sm text-zinc-600 font-medium select-none"
+                className="w-7 text-right font-mono text-[10px] font-semibold tracking-wider text-zinc-500 select-none"
                 aria-hidden="true"
               >
                 {row}
               </div>
-              <div className={cn("flex gap-2", layout === "concert" && "[&>button:nth-child(10)]:mr-5")} role="rowgroup">
+              <div className={cn("flex gap-1.5 rounded-full px-2 py-1", rowIndex >= middleRow ? "bg-white/[0.025]" : "bg-cyan-300/[0.025]", layout === "concert" && "[&>button:nth-child(10)]:mr-5")} role="rowgroup">
                 {rowSeats.map((seat) => {
                   const isSelected = selectedSeatIds.has(seat.id);
                   const isAvailable = seat.status === "available";
@@ -178,7 +177,7 @@ export const SeatMap = ({ seats, selectedSeatIds, onSeatClick, layout = "concert
                         isLocked || isSold || (isHeldByMe && !isSelected)
                       }
                       className={cn(
-                        "group relative w-10 h-10 rounded-t-lg rounded-b-sm border transition-all duration-200 flex items-center justify-center text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#090D16]",
+                        "group relative h-7 w-7 rounded-[5px] border transition-all duration-200 flex items-center justify-center text-[9px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071016]",
                         isAvailable && !isSelected && categoryStyles,
                         isSelected &&
                           "bg-emerald-500/30 border-emerald-400 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.5)] scale-110 z-10",
@@ -219,7 +218,7 @@ export const SeatMap = ({ seats, selectedSeatIds, onSeatClick, layout = "concert
                 })}
               </div>
               <div
-                className="w-6 text-left font-mono text-sm text-zinc-600 font-medium select-none"
+                className="w-7 text-left font-mono text-[10px] font-semibold tracking-wider text-zinc-500 select-none"
                 aria-hidden="true"
               >
                 {row}
@@ -235,6 +234,18 @@ export const SeatMap = ({ seats, selectedSeatIds, onSeatClick, layout = "concert
         role="toolbar"
         aria-label="Zoom controls"
       >
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setTransform({ x: 0, y: 0, scale: 1 });
+          }}
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900/90 text-xs font-semibold text-zinc-300 backdrop-blur transition-colors hover:border-cyan-400 hover:text-cyan-300"
+          aria-label="Reset map view"
+          title="Reset map view"
+        >
+          1:1
+        </button>
         <button
           type="button"
           onClick={(e) => {

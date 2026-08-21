@@ -46,8 +46,13 @@ export default function ShowBookingPage() {
   const handleSeatClick = (seat: ShowSeat) => {
     setSelectedSeatIds(prev => {
       const next = new Set(prev);
-      if (next.has(seat.id)) next.delete(seat.id);
-      else next.add(seat.id);
+      if (next.has(seat.id)) {
+        next.delete(seat.id);
+      } else if (next.size < 8) {
+        next.add(seat.id);
+      } else {
+        setToast({ message: 'You can select up to 8 tickets per booking.', type: 'error' });
+      }
       return next;
     });
   };
@@ -86,21 +91,21 @@ export default function ShowBookingPage() {
     <div className="min-h-screen bg-[#050810] flex flex-col p-4 md:p-6 lg:p-8 font-sans selection:bg-cyan-500/30">
       <div className="max-w-[1600px] mx-auto w-full flex-1 flex flex-col">
         {/* Header */}
-        <header className="mb-6 flex flex-col lg:flex-row lg:justify-between lg:items-end gap-6">
-          <div>
+        <header className="mb-4 flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-[#0a151d]/90 p-4 shadow-xl backdrop-blur-sm lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
             <BrandLogo compact />
-            <div className="relative mb-5 h-36 max-w-2xl overflow-hidden rounded-2xl border border-white/10">
-              <Image src={event.image} alt={`${event.title} event artwork`} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 672px" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
-              <div className="absolute bottom-4 left-5 text-sm font-medium text-white">{event.description}</div>
-            </div>
+            <div className="min-w-0">
             <div className="inline-flex items-center rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-400 transition-colors mb-3">
               Live Booking · {availableSeats} seats available
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">{event.title}</h1>
-            <p className="text-zinc-400 text-sm md:text-base">{event.venue}, {event.city} • {event.date} • {event.time}</p>
+              <h1 className="truncate text-2xl font-bold tracking-tight text-white md:text-3xl">{event.title}</h1>
+              <p className="truncate text-sm text-zinc-400">{event.venue}, {event.city} · {event.date} · {event.time}</p>
+            </div>
           </div>
-          <div className="w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
+          <div className="flex items-center gap-4 lg:shrink-0">
+            <div className="relative hidden h-16 w-28 overflow-hidden rounded-lg border border-white/10 sm:block">
+              <Image src={event.image} alt={`${event.title} event artwork`} fill className="object-cover" sizes="112px" />
+            </div>
             <SeatLegend />
           </div>
         </header>
@@ -122,6 +127,7 @@ export default function ShowBookingPage() {
           <div className="shrink-0">
             <BookingSummarySidebar 
               selectedSeats={selectedSeats}
+              maxTickets={8}
               onProceed={handleProceed}
               isLoading={isHolding}
               onOpenWaitlist={(category) => {

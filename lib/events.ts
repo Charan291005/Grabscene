@@ -86,13 +86,16 @@ export function formatPrice(price: number) {
 
 export function createDemoSeats(showId: string) {
   const seats = [];
-  const rows = ["A", "B", "C", "D", "E", "F", "G", "H"];
+  const isHansZimmer = showId === events[0].id;
+  const isFredAgain = showId === events[1].id;
+  const rows = isHansZimmer ? ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K"] : ["A", "B", "C", "D", "E", "F", "G", "H"];
+  const seatsPerRow = isFredAgain ? 16 : 20;
 
   for (const [rowIndex, row] of rows.entries()) {
-    for (let seatIndex = 1; seatIndex <= 20; seatIndex += 1) {
-      const category = rowIndex >= 6 ? "VIP" : rowIndex >= 3 ? "Premium" : "Standard";
+    for (let seatIndex = 1; seatIndex <= seatsPerRow; seatIndex += 1) {
+      const category = isHansZimmer && rowIndex >= 7 ? "VIP" : rowIndex >= 5 ? "Premium" : "Standard";
       const price = category === "VIP" ? 150 : category === "Premium" ? 85 : 45;
-      const status = (seatIndex + rowIndex) % 17 === 0 ? "booked" : (seatIndex + rowIndex) % 13 === 0 ? "held" : "available";
+      const status = (seatIndex + rowIndex) % 23 === 0 ? "booked" : (seatIndex + rowIndex) % 19 === 0 ? "held" : "available";
 
       seats.push({
         id: `${showId.slice(0, 8)}-seat-${row}-${seatIndex}`,
@@ -102,6 +105,7 @@ export function createDemoSeats(showId: string) {
         price,
         status,
         heldByMe: false,
+        section: isHansZimmer ? category : isFredAgain ? "Arena bowl" : "Main seating",
       });
     }
   }

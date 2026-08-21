@@ -9,9 +9,10 @@ interface Props {
   seats: ShowSeat[];
   selectedSeatIds: Set<string>;
   onSeatClick: (seat: ShowSeat) => void;
+  layout?: "concert" | "arena" | "theater";
 }
 
-export const SeatMap = ({ seats, selectedSeatIds, onSeatClick }: Props) => {
+export const SeatMap = ({ seats, selectedSeatIds, onSeatClick, layout = "concert" }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [isDragging, setIsDragging] = useState(false);
@@ -92,20 +93,29 @@ export const SeatMap = ({ seats, selectedSeatIds, onSeatClick }: Props) => {
       aria-label="Interactive seat map. Use mouse to pan and zoom, or tab to navigate individual seats."
       aria-roledescription="seat map"
     >
-      {/* Cinema Screen Indicator */}
+      {/* Venue orientation keeps the map readable at a glance like a real ticketing venue map. */}
       <div
         className="absolute top-8 left-1/2 -translate-x-1/2 w-3/4 max-w-2xl h-12 pointer-events-none z-10 flex flex-col items-center"
         aria-hidden="true"
       >
         <div className="w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent rounded-full opacity-50 blur-[2px]" />
         <div
-          className="w-full h-8 bg-gradient-to-b from-cyan-500/20 via-blue-500/10 to-transparent"
+          className={cn(
+            "w-full h-8 bg-gradient-to-b from-cyan-500/20 via-blue-500/10 to-transparent",
+            layout === "concert" && "h-12"
+          )}
           style={{ clipPath: "ellipse(50% 100% at 50% 0%)" }}
         />
         <span className="text-xs font-medium tracking-[0.3em] text-cyan-500/50 uppercase mt-2">
-          Stage
+          {layout === "concert" ? "Main stage · orchestra pit" : layout === "arena" ? "Main stage · floor standing" : "Screen / stage"}
         </span>
       </div>
+
+      {layout === "concert" && (
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 rounded-full border border-amber-400/30 bg-amber-500/10 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-amber-300/80">
+          Orchestra pit
+        </div>
+      )}
 
       {/* Grid Container */}
       <div
@@ -127,7 +137,7 @@ export const SeatMap = ({ seats, selectedSeatIds, onSeatClick }: Props) => {
               >
                 {row}
               </div>
-              <div className="flex gap-2" role="rowgroup">
+              <div className={cn("flex gap-2", layout === "concert" && "[&>button:nth-child(10)]:mr-5")} role="rowgroup">
                 {rowSeats.map((seat) => {
                   const isSelected = selectedSeatIds.has(seat.id);
                   const isAvailable = seat.status === "available";

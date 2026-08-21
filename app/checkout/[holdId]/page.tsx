@@ -17,6 +17,7 @@ export default function CheckoutPage() {
   
   // Dynamic state for selected seats loaded from sessionStorage
   const [selectedSeats, setSelectedSeats] = useState<{id: string; row: string; seatNumber: string; category: string; price: number}[]>([]);
+  const [userId, setUserId] = useState('demo-user');
   
   useEffect(() => {
     try {
@@ -24,6 +25,8 @@ export default function CheckoutPage() {
       if (data) setSelectedSeats(JSON.parse(data));
       const eventData = sessionStorage.getItem('grabscene_pending_event');
       if (eventData) setSelectedEvent(JSON.parse(eventData));
+      const pendingUser = sessionStorage.getItem('grabscene_pending_user');
+      if (pendingUser) setUserId(pendingUser);
     } catch (e) {
       console.error(e);
     }
@@ -39,7 +42,6 @@ export default function CheckoutPage() {
     if (selectedSeats.length > 0) return selectedSeats.map(s => s.id);
     return ["55555555-5555-5555-5555-000000000001"]; // fallback
   }, [selectedSeats]);
-  const userId = "11111111-1111-1111-1111-111111111111";
   
   // Calculate a mock expiry 10 minutes from now (simulating what the server returned)
   const [expiresAtIso] = useState(() => new Date(Date.now() + 10 * 60 * 1000).toISOString());
@@ -106,6 +108,11 @@ export default function CheckoutPage() {
       // Dispatch event to show the Email Drawer Intercept
       if (data.mockHtml) {
         window.dispatchEvent(new CustomEvent('grabscene:mock-email', { detail: { mockHtml: data.mockHtml } }));
+      }
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(`grabscene:booking:${selectedEvent.id}`, JSON.stringify({ seatIds, bookingRef: data.bookingId, bookedAt: Date.now() }));
+        window.localStorage.removeItem(`grabscene:hold:${selectedEvent.id}`);
       }
       
       // Wait 3 seconds to let them see the email drawer, then redirect to digital pass

@@ -9,4 +9,6 @@ export interface ShowSeat {
   status: SeatStatus;
   price: number;
   heldByMe: boolean; // Set to true if current user holds it
+  holdExpiresAt?: string | null;
+  section?: string;
 }

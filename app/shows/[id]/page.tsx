@@ -18,9 +18,20 @@ export default function ShowBookingPage() {
   const router = useRouter();
   const showId = typeof params.id === 'string' ? params.id : 'default-show';
   const event = getEvent(showId);
-  const currentUserId = '11111111-1111-1111-1111-111111111111'; // Mock user id
+  const [currentUserId] = useState(() => {
+    if (typeof window === 'undefined') return 'demo-user';
+    const existingUserId = window.sessionStorage.getItem('grabscene_demo_user');
+    if (existingUserId) return existingUserId;
+    const demoUsers = [
+      '33333333-3333-3333-3333-333333333333',
+      '44444444-4444-4444-4444-444444444444',
+    ];
+    const userId = demoUsers[Math.floor(Math.random() * demoUsers.length)];
+    window.sessionStorage.setItem('grabscene_demo_user', userId);
+    return userId;
+  });
   
-  const { seats, optimisticHoldSeats } = useShowSeatsRealtime(showId, createDemoSeats(showId) as ShowSeat[]);
+  const { seats, optimisticHoldSeats } = useShowSeatsRealtime(showId, createDemoSeats(showId) as ShowSeat[], currentUserId);
   const [selectedSeatIds, setSelectedSeatIds] = useState<Set<string>>(new Set());
   const [isHolding, setIsHolding] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
@@ -54,6 +65,7 @@ export default function ShowBookingPage() {
       // Save actual selected seats to sessionStorage so the checkout page can display them dynamically
       sessionStorage.setItem('grabscene_pending_seats', JSON.stringify(selectedSeats));
       sessionStorage.setItem('grabscene_pending_event', JSON.stringify(event));
+      sessionStorage.setItem('grabscene_pending_user', currentUserId);
       // Redirect to checkout to complete the integration flow
       setTimeout(() => {
         router.push(`/checkout/hold-${Date.now()}`);
@@ -102,6 +114,7 @@ export default function ShowBookingPage() {
               seats={seats}
               selectedSeatIds={selectedSeatIds}
               onSeatClick={handleSeatClick}
+              layout={showId === '55551111-5555-1111-5555-111155551111' ? 'concert' : showId === '55556666-5555-6666-5555-666655556666' ? 'arena' : 'theater'}
             />
           </div>
 

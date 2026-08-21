@@ -26,18 +26,27 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[], c
       if (loadError || !data || isCancelled) return;
 
       setSeats((data as any[]).map((seat) => {
+        const localSeat = initialSeats.find(s => s.id === seat.seat_id);
         const sectionName = seat.seats?.venue_sections?.name;
-        const category = sectionName === 'VIP' ? 'VIP' : sectionName === 'Premium' ? 'Premium' : 'Standard';
+        
+        let category = localSeat?.category;
+        if (!category) {
+          const lowerSec = sectionName?.toLowerCase() || '';
+          category = lowerSec.includes('vip') || lowerSec.includes('pit') || lowerSec.includes('orchestra') ? 'VIP' 
+                   : lowerSec.includes('premium') || lowerSec.includes('mezzanine') || lowerSec.includes('lower') ? 'Premium' 
+                   : 'Standard';
+        }
+
         return {
           id: seat.id,
-          row: seat.seats?.row_identifier ?? '?',
-          seatNumber: seat.seats?.seat_identifier ?? '?',
+          row: seat.seats?.row_identifier ?? localSeat?.row ?? '?',
+          seatNumber: seat.seats?.seat_identifier ?? localSeat?.seatNumber ?? '?',
           category,
           status: seat.status,
           price: Number(seat.price),
           heldByMe: seat.status === 'held' && seat.held_by === currentUserId,
           holdExpiresAt: seat.hold_expires_at,
-          section: sectionName ?? 'Standard',
+          section: sectionName ?? localSeat?.section ?? 'Standard',
         };
       }));
     };

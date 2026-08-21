@@ -8,9 +8,10 @@ interface Props {
   selectedSeats: ShowSeat[];
   onProceed: () => void;
   isLoading: boolean;
+  onOpenWaitlist?: (category: 'VIP' | 'Premium' | 'Standard') => void;
 }
 
-export const BookingSummarySidebar = ({ selectedSeats, onProceed, isLoading }: Props) => {
+export const BookingSummarySidebar = ({ selectedSeats, onProceed, isLoading, onOpenWaitlist }: Props) => {
   const total = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
 
   return (
@@ -26,8 +27,19 @@ export const BookingSummarySidebar = ({ selectedSeats, onProceed, isLoading }: P
                 <path d="M3 9h18M9 21V9" />
               </svg>
             </div>
-            <p>No seats selected</p>
-            <p className="text-xs mt-1 text-center">Select seats from the map to begin</p>
+            <p className="mb-6">No seats selected</p>
+            
+            {onOpenWaitlist && (
+              <div className="w-full mt-auto space-y-2">
+                <p className="text-xs text-center text-zinc-500 mb-3 border-t border-zinc-800 pt-4">Looking for sold out seats?</p>
+                <button onClick={() => onOpenWaitlist('VIP')} className="w-full py-2 text-xs rounded-lg border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 transition-colors">
+                  Join VIP Waitlist
+                </button>
+                <button onClick={() => onOpenWaitlist('Premium')} className="w-full py-2 text-xs rounded-lg border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 transition-colors">
+                  Join Premium Waitlist
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-3">

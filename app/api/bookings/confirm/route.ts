@@ -18,6 +18,32 @@ export async function POST(request: Request) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // MOCK BYPASS FOR LOCAL TESTING
+    if (supabaseUrl.includes('placeholder')) {
+      const qrCodeDataUrl = await generateTicketQRCode({ ref: bookingRef, event: 'EV-1234', show: showId });
+      const seatsInfo = seatIds.map((id: string, index: number) => ({
+        row: String.fromCharCode(65 + index),
+        number: String(index + 1),
+        category: 'Premium',
+        price: 85.00
+      }));
+      const emailResult = await sendEmail({
+        to: userEmail,
+        subject: `Your Tickets for Hans Zimmer Live - ${bookingRef}`,
+        react: React.createElement(TicketConfirmationEmail, {
+          bookingRef,
+          eventTitle: 'Hans Zimmer Live',
+          venueName: 'O2 Arena, London',
+          showDate: 'Friday, Aug 21, 2026',
+          showTime: '20:00',
+          seats: seatsInfo,
+          qrCodeDataUrl,
+          passUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/tickets/${bookingRef}`
+        })
+      });
+      return NextResponse.json({ success: true, bookingId: 'mock-booking-id', emailDispatched: emailResult.success, mockHtml: emailResult.mockHtml });
+    }
+
     // 1. Call confirm_booking RPC
     const { data: bookingId, error: rpcError } = await supabase.rpc('confirm_booking', {
       p_show_id: showId,

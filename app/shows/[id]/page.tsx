@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { SeatMap } from '../../../components/booking/SeatMap';
 import { SeatLegend } from '../../../components/booking/SeatLegend';
 import { BookingSummarySidebar } from '../../../components/booking/BookingSummarySidebar';
+import { WaitlistModal } from '../../../components/booking/WaitlistModal';
 import { useShowSeatsRealtime } from '../../../hooks/useShowSeatsRealtime';
 import { ShowSeat } from '../../../types/booking';
 import { useParams, useRouter } from 'next/navigation';
@@ -48,6 +49,10 @@ export default function ShowBookingPage() {
   const [selectedSeatIds, setSelectedSeatIds] = useState<Set<string>>(new Set());
   const [isHolding, setIsHolding] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+  
+  // Waitlist State
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [waitlistCategory, setWaitlistCategory] = useState<'VIP' | 'Premium' | 'Standard'>('VIP');
 
   const selectedSeats = seats.filter(s => selectedSeatIds.has(s.id));
 
@@ -121,6 +126,10 @@ export default function ShowBookingPage() {
               selectedSeats={selectedSeats}
               onProceed={handleProceed}
               isLoading={isHolding}
+              onOpenWaitlist={(category) => {
+                setWaitlistCategory(category);
+                setIsWaitlistOpen(true);
+              }}
             />
           </div>
 
@@ -140,6 +149,14 @@ export default function ShowBookingPage() {
               {toast?.message}
             </div>
           </div>
+
+          {/* Waitlist Modal */}
+          <WaitlistModal 
+            isOpen={isWaitlistOpen}
+            onClose={() => setIsWaitlistOpen(false)}
+            category={waitlistCategory}
+            showId={showId}
+          />
         </div>
       </div>
     </div>

@@ -85,28 +85,100 @@ export function formatPrice(price: number) {
 }
 
 export function createDemoSeats(showId: string) {
-  const seats = [];
-  const isHansZimmer = showId === events[0].id;
-  const isFredAgain = showId === events[1].id;
-  const rows = isHansZimmer ? ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K"] : ["A", "B", "C", "D", "E", "F", "G", "H"];
-  const seatsPerRow = isFredAgain ? 16 : 20;
-
-  for (const [rowIndex, row] of rows.entries()) {
-    for (let seatIndex = 1; seatIndex <= seatsPerRow; seatIndex += 1) {
-      const category = isHansZimmer && rowIndex >= 7 ? "VIP" : rowIndex >= 5 ? "Premium" : "Standard";
-      const price = category === "VIP" ? 150 : category === "Premium" ? 85 : 45;
-      const status = (seatIndex + rowIndex) % 23 === 0 ? "booked" : (seatIndex + rowIndex) % 19 === 0 ? "held" : "available";
-
-      seats.push({
-        id: `${showId.slice(0, 8)}-seat-${row}-${seatIndex}`,
-        row,
-        seatNumber: String(seatIndex),
-        category,
-        price,
-        status,
-        heldByMe: false,
-        section: isHansZimmer ? category : isFredAgain ? "Arena bowl" : "Main seating",
-      });
+  const seats: any[] = [];
+  
+  if (showId === events[0].id) {
+    // Hans Zimmer (Theater) - Curved seating with Orchestra & Balcony
+    const sections = [
+      { name: "Orchestra", rows: ["A", "B", "C", "D"], seatsPerRow: [12, 14, 16, 18], category: "VIP", basePrice: 150 },
+      { name: "Mezzanine", rows: ["E", "F", "G"], seatsPerRow: [20, 22, 24], category: "Premium", basePrice: 95 },
+      { name: "Balcony", rows: ["H", "J", "K", "L"], seatsPerRow: [26, 28, 28, 30], category: "Standard", basePrice: 55 },
+    ];
+    let seatIndexOverall = 0;
+    for (const section of sections) {
+      for (let i = 0; i < section.rows.length; i++) {
+        const row = section.rows[i];
+        const numSeats = section.seatsPerRow[i];
+        for (let seat = 1; seat <= numSeats; seat++) {
+          seatIndexOverall++;
+          seats.push({
+            id: `${showId.slice(0, 8)}-seat-${row}-${seat}`,
+            row, seatNumber: String(seat),
+            category: section.category, price: section.basePrice,
+            status: seatIndexOverall % 19 === 0 ? "held" : seatIndexOverall % 13 === 0 ? "booked" : "available",
+            heldByMe: false, section: section.name,
+          });
+        }
+      }
+    }
+  } else if (showId === events[1].id) {
+    // Fred Again (Arena 360) - Four sides
+    const sections = [
+      { name: "North Bowl", rows: ["NA", "NB", "NC"], seatsPerRow: 20, category: "Premium", basePrice: 85 },
+      { name: "South Bowl", rows: ["SA", "SB", "SC"], seatsPerRow: 20, category: "Premium", basePrice: 85 },
+      { name: "East VIP", rows: ["EA", "EB"], seatsPerRow: 12, category: "VIP", basePrice: 160 },
+      { name: "West VIP", rows: ["WA", "WB"], seatsPerRow: 12, category: "VIP", basePrice: 160 },
+    ];
+    let seatIndexOverall = 0;
+    for (const section of sections) {
+      for (const row of section.rows) {
+        for (let seat = 1; seat <= section.seatsPerRow; seat++) {
+          seatIndexOverall++;
+          seats.push({
+            id: `${showId.slice(0, 8)}-seat-${row}-${seat}`,
+            row, seatNumber: String(seat),
+            category: section.category, price: section.basePrice,
+            status: seatIndexOverall % 17 === 0 ? "held" : seatIndexOverall % 11 === 0 ? "booked" : "available",
+            heldByMe: false, section: section.name,
+          });
+        }
+      }
+    }
+  } else if (showId === events[2].id) {
+    // The Weeknd (Concert) - Deep Thrust Stage
+    const sections = [
+      { name: "Golden Circle", rows: ["Pit1", "Pit2"], seatsPerRow: [10, 14], category: "VIP", basePrice: 200 },
+      { name: "Lower Tier", rows: ["L1", "L2", "L3", "L4"], seatsPerRow: [24, 26, 28, 30], category: "Premium", basePrice: 120 },
+      { name: "Upper Tier", rows: ["U1", "U2", "U3", "U4", "U5"], seatsPerRow: [32, 34, 34, 36, 38], category: "Standard", basePrice: 75 },
+    ];
+    let seatIndexOverall = 0;
+    for (const section of sections) {
+      for (let i = 0; i < section.rows.length; i++) {
+        const row = section.rows[i];
+        const numSeats = section.seatsPerRow[i];
+        for (let seat = 1; seat <= numSeats; seat++) {
+          seatIndexOverall++;
+          seats.push({
+            id: `${showId.slice(0, 8)}-seat-${row}-${seat}`,
+            row, seatNumber: String(seat),
+            category: section.category, price: section.basePrice,
+            status: seatIndexOverall % 23 === 0 ? "held" : seatIndexOverall % 15 === 0 ? "booked" : "available",
+            heldByMe: false, section: section.name,
+          });
+        }
+      }
+    }
+  } else {
+    // Coldplay (Stadium) - Massive flat width
+    const sections = [
+      { name: "Field GA", rows: ["F1", "F2", "F3"], seatsPerRow: 35, category: "VIP", basePrice: 180 },
+      { name: "Level 100", rows: ["101", "102", "103", "104"], seatsPerRow: 40, category: "Premium", basePrice: 110 },
+      { name: "Level 200", rows: ["201", "202", "203", "204", "205"], seatsPerRow: 45, category: "Standard", basePrice: 65 },
+    ];
+    let seatIndexOverall = 0;
+    for (const section of sections) {
+      for (const row of section.rows) {
+        for (let seat = 1; seat <= section.seatsPerRow; seat++) {
+          seatIndexOverall++;
+          seats.push({
+            id: `${showId.slice(0, 8)}-seat-${row}-${seat}`,
+            row, seatNumber: String(seat),
+            category: section.category, price: section.basePrice,
+            status: seatIndexOverall % 25 === 0 ? "held" : seatIndexOverall % 19 === 0 ? "booked" : "available",
+            heldByMe: false, section: section.name,
+          });
+        }
+      }
     }
   }
 

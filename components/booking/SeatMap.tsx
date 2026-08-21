@@ -121,9 +121,23 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
             </div>
           )}
 
-          <div className={layout === 'arena' ? 'flex flex-wrap justify-center gap-20 max-w-4xl' : 'flex flex-col gap-12'}>
-            {sectionGrid.map(({ sectionName, rows }) => (
-              <div key={sectionName} className="flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30">
+          <div className={`
+            ${layout === 'arena' ? 'grid grid-cols-2 gap-16 items-center justify-items-center max-w-5xl' : 
+              layout === 'concert' ? 'flex flex-col items-center gap-8' : 
+              layout === 'theater' ? 'flex flex-col items-center gap-10 perspective-[1000px]' :
+              'flex flex-col items-center gap-16'} 
+          `}>
+            {sectionGrid.map(({ sectionName, rows }, sectionIndex) => (
+              <div 
+                key={sectionName} 
+                className={`
+                  flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30 shadow-xl
+                  ${layout === 'theater' && sectionIndex === 0 ? 'rotate-x-[5deg] scale-105' : ''}
+                  ${layout === 'theater' && sectionIndex === 1 ? 'rotate-x-[15deg] translate-y-4 scale-95' : ''}
+                  ${layout === 'theater' && sectionIndex === 2 ? 'rotate-x-[25deg] translate-y-8 scale-90 opacity-80' : ''}
+                `}
+                style={layout === 'theater' ? { transformStyle: 'preserve-3d' } : {}}
+              >
                 <h3 className="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-6 px-6 py-2 border border-zinc-800 rounded-full bg-zinc-900/80 shadow-lg flex items-center gap-2">
                   {(sectionName.toLowerCase().includes('vip') || sectionName.toLowerCase().includes('premium')) && <Sparkles className="w-3 h-3 text-amber-500" />}
                   {sectionName}
@@ -135,21 +149,35 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
                         {row}
                       </div>
 
-                      <div className="flex gap-4">
-                        {rowSeats.length > 10 ? (
+                      <div className="flex gap-2 sm:gap-4">
+                        {rowSeats.length > 20 ? (
                           <>
-                            <div className="flex gap-1.5">
+                            <div className="flex gap-1">
                               {rowSeats.slice(0, Math.floor(rowSeats.length / 3)).map((seat) => (
                                 <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
                               ))}
                             </div>
-                            <div className="flex gap-1.5 px-4 border-x border-zinc-800/50">
+                            <div className="flex gap-1 px-4 border-x border-zinc-800/50">
                               {rowSeats.slice(Math.floor(rowSeats.length / 3), Math.floor(rowSeats.length * 2 / 3)).map((seat) => (
                                 <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
                               ))}
                             </div>
-                            <div className="flex gap-1.5">
+                            <div className="flex gap-1">
                               {rowSeats.slice(Math.floor(rowSeats.length * 2 / 3)).map((seat) => (
+                                <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
+                              ))}
+                            </div>
+                          </>
+                        ) : rowSeats.length > 10 ? (
+                          <>
+                            <div className="flex gap-1">
+                              {rowSeats.slice(0, Math.floor(rowSeats.length / 2)).map((seat) => (
+                                <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
+                              ))}
+                            </div>
+                            <div className="w-6 border-l border-zinc-800/50 h-full"></div>
+                            <div className="flex gap-1">
+                              {rowSeats.slice(Math.floor(rowSeats.length / 2)).map((seat) => (
                                 <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
                               ))}
                             </div>

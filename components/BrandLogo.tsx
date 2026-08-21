@@ -14,7 +14,7 @@ export function BrandLogo({ compact = false, href = "/" }: BrandLogoProps) {
       width={compact ? 112 : 176}
       height={compact ? 58 : 84}
       priority
-      className={compact ? "h-12 w-28 object-contain" : "h-[4.5rem] w-44 object-contain"}
+      className={compact ? "h-12 w-auto object-contain" : "h-[4.5rem] w-auto object-contain"}
     />
   );
 

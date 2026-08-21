@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+
 interface UseHoldTimerProps {
   expiresAtIso: string;
   showId: string;
@@ -51,6 +53,8 @@ export function useHoldTimer({ expiresAtIso, showId, seatIds, userId, onExpire }
   // Handle explicit abandonment on tab close / reload
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (supabaseUrl.includes('placeholder')) return;
+
       // Fire and forget release request using fetch with keepalive flag
       // This ensures the browser continues the network request after the tab is destroyed.
       const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'}/rest/v1/rpc/release_held_seats`;
@@ -88,6 +92,12 @@ export function useHoldTimer({ expiresAtIso, showId, seatIds, userId, onExpire }
 
   const releaseManually = async () => {
     try {
+      if (supabaseUrl.includes('placeholder')) {
+        setIsExpired(true);
+        onExpire();
+        return;
+      }
+
       const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'}/rest/v1/rpc/release_held_seats`;
       const payload = { p_show_id: showId, p_seat_ids: seatIds, p_user_id: userId };
       const headers = {

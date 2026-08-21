@@ -2,15 +2,18 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import { Download, Share2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
 import { BrandLogo } from '../../../components/BrandLogo';
+import { getEvent } from '../../../lib/events';
 
 export default function TicketPassPage() {
   const params = useParams();
   const reference = params.reference as string;
   const ticketRef = useRef<HTMLDivElement>(null);
+  const [selectedEvent, setSelectedEvent] = useState(() => getEvent("55551111-5555-1111-5555-111155551111"));
   
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [isDownloading, setIsDownloading] = useState(false);
@@ -18,12 +21,14 @@ export default function TicketPassPage() {
   useEffect(() => {
     // Generate a demo QR code dynamically for the ticket viewer
     // In production, we could just pass down the pre-generated one from the DB
-    QRCode.toDataURL(JSON.stringify({ ref: reference, event: 'Hans Zimmer' }), {
+    const eventData = sessionStorage.getItem('grabscene_pending_event');
+    if (eventData) setSelectedEvent(JSON.parse(eventData));
+    QRCode.toDataURL(JSON.stringify({ ref: reference, event: selectedEvent.id }), {
       margin: 2,
       color: { dark: '#000000', light: '#ffffff' },
       width: 256
     }).then(setQrCodeUrl).catch(console.error);
-  }, [reference]);
+  }, [reference, selectedEvent.id]);
 
   const handleDownload = async () => {
     if (!ticketRef.current || isDownloading) return;
@@ -80,23 +85,27 @@ export default function TicketPassPage() {
         {/* Top Half */}
         <div className="bg-[#0c111d] border border-zinc-800 rounded-t-3xl p-8 relative overflow-hidden">
           <div className="absolute -top-20 -right-20 w-48 h-48 bg-cyan-500/20 blur-[60px] rounded-full pointer-events-none" aria-hidden="true" />
+          <div className="relative h-32 overflow-hidden rounded-2xl border border-white/10 mb-6">
+            <Image src={selectedEvent.image} alt={`${selectedEvent.title} event artwork`} fill className="object-cover" sizes="384px" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+          </div>
           
           <div className="flex justify-between items-start mb-8 relative z-10">
             <div>
               <p className="text-xs font-semibold text-cyan-500 uppercase tracking-widest mb-1">General Admission</p>
-              <h2 className="text-2xl font-bold text-white leading-tight">Hans Zimmer Live</h2>
-              <p className="text-zinc-400 text-sm mt-1">O2 Arena, London</p>
+              <h2 className="text-2xl font-bold text-white leading-tight">{selectedEvent.title}</h2>
+              <p className="text-zinc-400 text-sm mt-1">{selectedEvent.venue}, {selectedEvent.city}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6 relative z-10">
             <div>
               <p className="text-xs text-zinc-500 mb-1">Date</p>
-              <p className="text-sm font-semibold text-zinc-200">Fri, Aug 21, 2026</p>
+              <p className="text-sm font-semibold text-zinc-200">{selectedEvent.date}</p>
             </div>
             <div>
               <p className="text-xs text-zinc-500 mb-1">Time</p>
-              <p className="text-sm font-semibold text-zinc-200">20:00 BST</p>
+              <p className="text-sm font-semibold text-zinc-200">{selectedEvent.time}</p>
             </div>
             <div>
               <p className="text-xs text-zinc-500 mb-1">Row</p>

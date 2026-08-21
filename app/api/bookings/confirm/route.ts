@@ -4,6 +4,7 @@ import { generateTicketQRCode } from '../../../../lib/qrcode';
 import { sendEmail } from '../../../../lib/email';
 import { TicketConfirmationEmail } from '../../../../components/emails/TicketConfirmationEmail';
 import React from 'react';
+import { getEvent } from '../../../../lib/events';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder';
@@ -18,12 +19,13 @@ export async function POST(request: Request) {
 
     // Generate secure booking reference on the server
     const bookingRef = `GS-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    const event = getEvent(showId);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // MOCK BYPASS FOR LOCAL TESTING
     if (supabaseUrl.includes('placeholder')) {
-      const qrCodeDataUrl = await generateTicketQRCode({ ref: bookingRef, event: 'EV-1234', show: showId });
+      const qrCodeDataUrl = await generateTicketQRCode({ ref: bookingRef, event: event.id, show: showId });
       const seatsInfo = seatIds.map((id: string, index: number) => ({
         row: String.fromCharCode(65 + index),
         number: String(index + 1),
@@ -32,13 +34,13 @@ export async function POST(request: Request) {
       }));
       const emailResult = await sendEmail({
         to: userEmail,
-        subject: `Your Tickets for Hans Zimmer Live - ${bookingRef}`,
+        subject: `Your Tickets for ${event.title} - ${bookingRef}`,
         react: React.createElement(TicketConfirmationEmail, {
           bookingRef,
-          eventTitle: 'Hans Zimmer Live',
-          venueName: 'O2 Arena, London',
-          showDate: 'Friday, Aug 21, 2026',
-          showTime: '20:00',
+          eventTitle: event.title,
+          venueName: `${event.venue}, ${event.city}`,
+          showDate: event.date,
+          showTime: event.time,
           seats: seatsInfo,
           qrCodeDataUrl,
           passUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/tickets/${bookingRef}`
@@ -63,7 +65,7 @@ export async function POST(request: Request) {
     // 2. Generate secure QR Code string
     const qrCodeDataUrl = await generateTicketQRCode({
       ref: bookingRef,
-      event: 'EV-1234',
+      event: event.id,
       show: showId
     });
 
@@ -84,13 +86,13 @@ export async function POST(request: Request) {
     // 4. Asynchronously send transactional email
     const emailResult = await sendEmail({
       to: userEmail,
-      subject: `Your Tickets for Hans Zimmer Live - ${bookingRef}`,
+      subject: `Your Tickets for ${event.title} - ${bookingRef}`,
       react: React.createElement(TicketConfirmationEmail, {
         bookingRef,
-        eventTitle: 'Hans Zimmer Live',
-        venueName: 'O2 Arena, London',
-        showDate: 'Friday, Aug 21, 2026',
-        showTime: '20:00',
+        eventTitle: event.title,
+        venueName: `${event.venue}, ${event.city}`,
+        showDate: event.date,
+        showTime: event.time,
         seats: seatsInfo,
         qrCodeDataUrl,
         passUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/tickets/${bookingRef}`

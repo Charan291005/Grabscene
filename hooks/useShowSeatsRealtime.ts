@@ -12,6 +12,36 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[]) {
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
+    let isCancelled = false;
+
+    const loadSeats = async () => {
+      if (supabaseUrl.includes('placeholder')) return;
+
+      const { data, error: loadError } = await supabase
+        .from('show_seats')
+        .select('id, status, price, seat_id, seats(row_identifier, seat_identifier, section_id, venue_sections(name))')
+        .eq('show_id', showId)
+        .order('id');
+
+      if (loadError || !data || isCancelled) return;
+
+      setSeats((data as any[]).map((seat) => {
+        const sectionName = seat.seats?.venue_sections?.name;
+        const category = sectionName === 'VIP' ? 'VIP' : sectionName === 'Premium' ? 'Premium' : 'Standard';
+        return {
+          id: seat.id,
+          row: seat.seats?.row_identifier ?? '?',
+          seatNumber: seat.seats?.seat_identifier ?? '?',
+          category,
+          status: seat.status,
+          price: Number(seat.price),
+          heldByMe: false,
+        };
+      }));
+    };
+
+    loadSeats();
+
     // Subscribe to Postgres changes on show_seats table
     const channel = supabase.channel(`show_seats_changes_${showId}`)
       .on(
@@ -43,6 +73,7 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[]) {
       .subscribe();
 
     return () => {
+      isCancelled = true;
       supabase.removeChannel(channel);
     };
   }, [showId]);

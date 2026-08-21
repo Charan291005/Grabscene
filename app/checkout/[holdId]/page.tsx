@@ -5,15 +5,15 @@ import { HoldCountdownTimer } from '../../../components/booking/HoldCountdownTim
 import { BrandLogo } from '../../../components/BrandLogo';
 import { useHoldTimer } from '../../../hooks/useHoldTimer';
 import { useParams, useRouter } from 'next/navigation';
-import { Clock } from 'lucide-react';
+import Image from 'next/image';
+import { Check, Clock, CreditCard, LockKeyhole, Smartphone, Wallet } from 'lucide-react';
+import { getEvent } from '../../../lib/events';
 
 export default function CheckoutPage() {
   const params = useParams();
   const router = useRouter();
   
-  // In a real app, you would fetch these details based on the holdId from an API.
-  // For demonstration, we simulate the state.
-  const showId = "55551111-5555-1111-5555-111155551111";
+  const [selectedEvent, setSelectedEvent] = useState(() => getEvent("55551111-5555-1111-5555-111155551111"));
   
   // Dynamic state for selected seats loaded from sessionStorage
   const [selectedSeats, setSelectedSeats] = useState<{id: string; row: string; seatNumber: string; category: string; price: number}[]>([]);
@@ -22,6 +22,8 @@ export default function CheckoutPage() {
     try {
       const data = sessionStorage.getItem('grabscene_pending_seats');
       if (data) setSelectedSeats(JSON.parse(data));
+      const eventData = sessionStorage.getItem('grabscene_pending_event');
+      if (eventData) setSelectedEvent(JSON.parse(eventData));
     } catch (e) {
       console.error(e);
     }
@@ -45,6 +47,12 @@ export default function CheckoutPage() {
   const [isExpiredModalOpen, setIsExpiredModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'wallet'>('card');
+  const [cardName, setCardName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [email, setEmail] = useState('customer1@example.com');
 
   const handleExpire = useCallback(() => {
     setIsExpiredModalOpen(true);
@@ -52,7 +60,7 @@ export default function CheckoutPage() {
 
   const { remainingMs, formattedTime, isExpired, isLowTime, releaseManually } = useHoldTimer({
     expiresAtIso,
-    showId,
+    showId: selectedEvent.id,
     seatIds,
     userId,
     onExpire: handleExpire
@@ -63,10 +71,19 @@ export default function CheckoutPage() {
 
   const handleCancel = () => {
     releaseManually();
-    router.push('/shows/55551111-5555-1111-5555-111155551111'); // Go back to show map
+    router.push(`/shows/${selectedEvent.id}`);
   };
 
   const handlePay = async () => {
+    if (!email.includes('@')) {
+      setErrorMsg('Enter a valid email address for your ticket delivery.');
+      return;
+    }
+    if (paymentMethod === 'card' && (cardName.trim().length < 2 || cardNumber.replace(/\D/g, '').length < 12 || !/^\d{2}\/\d{2}$/.test(expiry) || cvv.length < 3)) {
+      setErrorMsg('Complete the card details to continue. Use any demo values; no payment is processed.');
+      return;
+    }
+
     setIsProcessing(true);
     setErrorMsg(null);
     try {
@@ -74,10 +91,10 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          showId: showId,
+          showId: selectedEvent.id,
           seatIds: seatIds,
           userId: userId,
-          userEmail: 'customer1@example.com'
+          userEmail: email
         })
       });
       const data = await res.json();
@@ -112,7 +129,7 @@ export default function CheckoutPage() {
         <div>
           <BrandLogo compact />
           <h1 className="text-3xl font-bold tracking-tight text-white">Checkout</h1>
-          <p className="text-zinc-400">Complete your reservation before the timer runs out.</p>
+          <p className="text-zinc-400">{selectedEvent.title} at {selectedEvent.venue}, {selectedEvent.city}</p>
         </div>
         
         <div className="sticky top-4 z-40" role="timer" aria-live="polite" aria-label={`Time remaining: ${formattedTime}`}>
@@ -130,6 +147,15 @@ export default function CheckoutPage() {
         
         {/* Form Column */}
         <div className="flex-1 bg-[#0c111d] border border-zinc-800 rounded-3xl p-6 md:p-10 shadow-2xl">
+          <div className="relative h-40 overflow-hidden rounded-2xl border border-white/10 mb-8">
+            <Image src={selectedEvent.image} alt={`${selectedEvent.title} event artwork`} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 640px" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Your reservation</p>
+              <p className="mt-1 text-xl font-bold text-white">{selectedEvent.title}</p>
+            </div>
+          </div>
+
           <h2 className="text-xl font-semibold text-white mb-6">Customer Details</h2>
           <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -144,19 +170,63 @@ export default function CheckoutPage() {
             </div>
             <div className="space-y-2">
               <label htmlFor="checkout-email" className="text-sm text-zinc-400">Email Address</label>
-              <input id="checkout-email" disabled={isExpired} type="email" autoComplete="email" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50" placeholder="jane@example.com" />
+              <input id="checkout-email" disabled={isExpired} type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50" placeholder="jane@example.com" />
             </div>
             
             <hr className="border-zinc-800 my-8" />
             
-            <h2 className="text-xl font-semibold text-white mb-6">Payment Information</h2>
-            <div className="space-y-2">
-              <label htmlFor="checkout-card" className="text-sm text-zinc-400">Card Details (Simulated)</label>
-              <div id="checkout-card" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-500 flex items-center justify-between" role="group" aria-label="Simulated credit card input">
-                <span aria-label="Card ending in 4242">•••• •••• •••• 4242</span>
-                <span className="text-xs border border-zinc-700 px-2 py-1 rounded">Mock Stripe Element</span>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-white">Payment Information</h2>
+                <p className="mt-1 text-xs text-zinc-500">Demo checkout. No real payment will be charged.</p>
               </div>
+              <LockKeyhole className="h-5 w-5 text-emerald-400" aria-label="Secure demo checkout" />
             </div>
+
+            <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Payment method">
+              {[
+                { id: 'card' as const, label: 'Card', icon: CreditCard },
+                { id: 'upi' as const, label: 'UPI', icon: Smartphone },
+                { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
+              ].map(({ id, label, icon: Icon }) => (
+                <button key={id} type="button" role="tab" aria-selected={paymentMethod === id} onClick={() => setPaymentMethod(id)} className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-colors ${paymentMethod === id ? 'border-cyan-400 bg-cyan-400/10 text-cyan-300' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-white'}`}>
+                  <Icon className="h-4 w-4" aria-hidden="true" /> {label}
+                </button>
+              ))}
+            </div>
+
+            {paymentMethod === 'card' ? (
+              <div className="mt-6 space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="checkout-card-name" className="text-sm text-zinc-400">Name on card</label>
+                  <input id="checkout-card-name" value={cardName} onChange={(event) => setCardName(event.target.value)} disabled={isExpired} autoComplete="cc-name" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50" placeholder="Jane Doe" />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="checkout-card-number" className="text-sm text-zinc-400">Card number</label>
+                  <div className="relative">
+                    <CreditCard className="absolute left-4 top-3.5 h-5 w-5 text-zinc-500" aria-hidden="true" />
+                    <input id="checkout-card-number" value={cardNumber} onChange={(event) => setCardNumber(event.target.value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 '))} disabled={isExpired} inputMode="numeric" autoComplete="cc-number" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-12 py-3 text-white tracking-widest focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50" placeholder="4242 4242 4242 4242" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="checkout-expiry" className="text-sm text-zinc-400">Expiry</label>
+                    <input id="checkout-expiry" value={expiry} onChange={(event) => setExpiry(event.target.value.replace(/\D/g, '').slice(0, 4).replace(/(\d{2})(?=\d)/, '$1/'))} disabled={isExpired} inputMode="numeric" autoComplete="cc-exp" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50" placeholder="08/29" />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="checkout-cvv" className="text-sm text-zinc-400">CVV</label>
+                    <input id="checkout-cvv" value={cvv} onChange={(event) => setCvv(event.target.value.replace(/\D/g, '').slice(0, 4))} disabled={isExpired} inputMode="numeric" autoComplete="cc-csc" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50" placeholder="123" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/60 p-6 text-center">
+                <p className="font-medium text-white">{paymentMethod === 'upi' ? 'UPI demo selected' : 'Wallet demo selected'}</p>
+                <p className="mt-2 text-sm text-zinc-500">You will see a simulated authorization step after continuing.</p>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 text-xs text-zinc-500"><Check className="h-4 w-4 text-emerald-400" /> Your ticket will be delivered to {email || 'your email address'}.</div>
           </form>
         </div>
 
@@ -235,7 +305,7 @@ export default function CheckoutPage() {
             </p>
             <button 
               type="button"
-              onClick={() => router.push('/shows/55551111-5555-1111-5555-111155551111')}
+              onClick={() => router.push(`/shows/${selectedEvent.id}`)}
               className="w-full py-3.5 rounded-xl font-medium bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
             >
               Return to Seat Map

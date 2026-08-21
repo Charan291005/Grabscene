@@ -124,14 +124,59 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
               Center Stage
             </div>
           )}
-
           <div className={`
-            ${layout === 'arena' ? 'grid grid-cols-2 gap-16 items-center justify-items-center max-w-5xl' : 
+            ${layout === 'arena' ? 'relative w-[800px] h-[800px] flex items-center justify-center' : 
               layout === 'concert' ? 'flex flex-col items-center gap-8' : 
               layout === 'theater' ? 'flex flex-col items-center gap-10 perspective-[1000px]' :
               'flex flex-col items-center gap-16'} 
           `}>
-            {sectionGrid.map(({ sectionName, rows }, sectionIndex) => (
+            {/* Stage */}
+            <div className={`
+              ${layout === 'arena' ? 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-32' : 'w-64 h-24 mb-12'}
+              bg-zinc-900/80 border border-zinc-700/50 rounded-3xl flex flex-col items-center justify-center
+              shadow-[0_0_50px_rgba(34,211,238,0.1)] backdrop-blur-xl z-0
+            `}>
+              <Sparkles className="w-5 h-5 text-cyan-500/50 mb-2" />
+              <span className="text-zinc-500 font-bold tracking-[0.2em] text-sm">
+                {layout === 'arena' ? '360° STAGE' : 'STAGE'}
+              </span>
+            </div>
+
+            {layout === 'arena' ? (
+              // Custom 360 Arena Positioning
+              <>
+                {sectionGrid.map(({ sectionName, rows }) => {
+                  let positionClass = "";
+                  if (sectionName === "North Bowl") positionClass = "absolute top-0 left-1/2 -translate-x-1/2";
+                  if (sectionName === "South Bowl") positionClass = "absolute bottom-0 left-1/2 -translate-x-1/2 rotate-180";
+                  if (sectionName === "East VIP") positionClass = "absolute left-0 top-1/2 -translate-y-1/2 -rotate-90";
+                  if (sectionName === "West VIP") positionClass = "absolute right-0 top-1/2 -translate-y-1/2 rotate-90";
+
+                  return (
+                    <div key={sectionName} className={`flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30 shadow-xl ${positionClass}`}>
+                      <h3 className="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-6 px-6 py-2 border border-zinc-800 rounded-full bg-zinc-900/80 shadow-lg flex items-center gap-2">
+                        {(sectionName.toLowerCase().includes('vip') || sectionName.toLowerCase().includes('premium')) && <Sparkles className="w-3 h-3 text-amber-500" />}
+                        {sectionName}
+                      </h3>
+                      <div className="flex flex-col gap-3">
+                        {rows.map(([row, rowSeats]) => (
+                          <div key={row} className="flex items-center gap-4 group">
+                            <div className="w-6 text-right text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors">{row}</div>
+                            <div className="flex gap-1.5">
+                              {rowSeats.map((seat) => (
+                                <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
+                              ))}
+                            </div>
+                            <div className="w-6 text-left text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors">{row}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            ) : (
+            sectionGrid.map(({ sectionName, rows }, sectionIndex) => (
               <div 
                 key={sectionName} 
                 className={`
@@ -174,13 +219,13 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
                           </>
                         ) : rowSeats.length > 10 ? (
                           <>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1.5">
                               {rowSeats.slice(0, Math.floor(rowSeats.length / 2)).map((seat) => (
                                 <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
                               ))}
                             </div>
-                            <div className="w-6 border-l border-zinc-800/50 h-full"></div>
-                            <div className="flex gap-1">
+                            <div className="w-8 h-8 flex items-center justify-center text-zinc-800 font-bold text-xs">AISLE</div>
+                            <div className="flex gap-1.5">
                               {rowSeats.slice(Math.floor(rowSeats.length / 2)).map((seat) => (
                                 <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
                               ))}
@@ -202,7 +247,7 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
                   ))}
                 </div>
               </div>
-            ))}
+            )))}
           </div>
         </div>
       </div>

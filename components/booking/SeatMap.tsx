@@ -65,18 +65,22 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
     return result;
   }, [seats]);
 
-  const getSeatColor = (status: ShowSeat["status"], isVip: boolean) => {
-    switch (status) {
-      case "available":
-        return isVip 
-          ? "bg-amber-500/20 border-amber-500/50 hover:bg-amber-500/40 hover:border-amber-400"
-          : "bg-zinc-800 border-zinc-600 hover:bg-cyan-500/30 hover:border-cyan-400";
-      case "held":
-        return "bg-amber-500 border-amber-400 animate-pulse cursor-not-allowed";
-      case "booked":
-        return "bg-zinc-900 border-zinc-800 opacity-50 cursor-not-allowed";
-      default:
-        return "bg-zinc-800 border-zinc-700";
+  const getSeatColor = (status: ShowSeat["status"], category: string) => {
+    if (status === "held") {
+      return "bg-zinc-500 border-zinc-400 animate-pulse cursor-not-allowed";
+    }
+    if (status === "booked") {
+      return "bg-zinc-800 border-zinc-900 opacity-40 cursor-not-allowed";
+    }
+    
+    // Available colors by category
+    if (category === "VIP") {
+      return "bg-amber-400 border-amber-500 hover:bg-amber-300 hover:border-amber-400 text-amber-950";
+    } else if (category === "Premium") {
+      return "bg-purple-500 border-purple-600 hover:bg-purple-400 hover:border-purple-500 text-white";
+    } else {
+      // Standard
+      return "bg-cyan-500 border-cyan-600 hover:bg-cyan-400 hover:border-cyan-500 text-cyan-950";
     }
   };
 
@@ -205,22 +209,26 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
 
       {/* Modern Legend */}
       <div className="absolute bottom-0 left-0 w-full bg-[#0c111d]/90 backdrop-blur-xl border-t border-zinc-800/50 p-4 flex flex-wrap items-center justify-center gap-6 text-sm">
-        <div className="flex items-center gap-2 text-zinc-300">
-          <div className="w-5 h-5 rounded-md bg-zinc-800 border border-zinc-600 shadow-inner"></div>
-          <span>Available</span>
-        </div>
         <div className="flex items-center gap-2 text-amber-400">
-          <div className="w-5 h-5 rounded-md bg-amber-500/20 border border-amber-500/50 flex items-center justify-center shadow-inner">
+          <div className="w-5 h-5 rounded-md bg-amber-400 border border-amber-500 flex items-center justify-center shadow-inner text-amber-950">
             <Sparkles className="w-3 h-3" />
           </div>
-          <span>VIP / Premium</span>
+          <span>VIP</span>
         </div>
-        <div className="flex items-center gap-2 text-amber-500">
-          <div className="w-5 h-5 rounded-md bg-amber-500 border border-amber-400 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
-          <span>Held by Others</span>
+        <div className="flex items-center gap-2 text-purple-400">
+          <div className="w-5 h-5 rounded-md bg-purple-500 border border-purple-600 shadow-inner"></div>
+          <span>Premium</span>
+        </div>
+        <div className="flex items-center gap-2 text-cyan-400">
+          <div className="w-5 h-5 rounded-md bg-cyan-500 border border-cyan-600 shadow-inner"></div>
+          <span>Standard</span>
+        </div>
+        <div className="flex items-center gap-2 text-zinc-400">
+          <div className="w-5 h-5 rounded-md bg-zinc-500 border border-zinc-400 animate-pulse shadow-inner"></div>
+          <span>Held</span>
         </div>
         <div className="flex items-center gap-2 text-zinc-600">
-          <div className="w-5 h-5 rounded-md bg-zinc-900 border border-zinc-800 opacity-50 relative overflow-hidden">
+          <div className="w-5 h-5 rounded-md bg-zinc-800 border border-zinc-900 opacity-50 relative overflow-hidden">
             <div className="absolute inset-0 border-t-2 border-red-500/20 rotate-45 scale-150 transform origin-center"></div>
           </div>
           <span>Sold Out</span>
@@ -231,8 +239,8 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
 }
 
 function SeatButton({ seat, onSelect, getColor, isSelected }: { seat: ShowSeat, onSelect: (id: string) => void, getColor: any, isSelected: boolean }) {
-  const isVip = seat.category === "VIP" || seat.category === "Premium";
-  const colorClass = getColor(seat.status, isVip);
+  const isVip = seat.category === "VIP";
+  const colorClass = getColor(seat.status, seat.category);
   const isDisabled = seat.status === "booked" || seat.status === "held";
 
   return (

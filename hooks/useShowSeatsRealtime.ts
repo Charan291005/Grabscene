@@ -126,16 +126,21 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[], c
         return { success: true };
       }
 
-      // Real RPC call
-      const { error: rpcError } = await supabase.rpc('hold_seats', {
-        p_show_id: showId,
-        p_seat_ids: seatIds,
-        p_user_id: userId,
-        p_ttl_minutes: 10
+      // Backend API call (uses service key to bypass RLS)
+      const res = await fetch('/api/seats/hold', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          showId,
+          seatIds,
+          userId,
+          ttlMinutes: 10
+        })
       });
 
-      if (rpcError) {
-        throw new Error(rpcError.message || 'Failed to hold seats');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to hold seats');
       }
       
       return { success: true };

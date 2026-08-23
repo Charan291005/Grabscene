@@ -4,7 +4,14 @@ import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { BrandLogo } from "@/components/BrandLogo";
-import { events, formatPrice } from "@/lib/events";
+import { useEvents } from "@/hooks/useEvents";
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(price);
+};
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   Search,
@@ -28,8 +35,9 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { events, isLoading: eventsLoading } = useEvents();
 
-  const featuredEvents = useMemo(() => events.filter(e => e.featured), []);
+  const featuredEvents = useMemo(() => events.filter(e => e.featured), [events]);
 
   useEffect(() => {
     if (featuredEvents.length === 0) return;
@@ -48,7 +56,7 @@ export default function Home() {
           e.venue.toLowerCase().includes(normalizedQuery) ||
           e.city.toLowerCase().includes(normalizedQuery))
     );
-  }, [activeTab, query]);
+  }, [activeTab, query, events]);
 
   const nextSlide = () => setCurrentSlide((p) => (p + 1) % featuredEvents.length);
   const prevSlide = () => setCurrentSlide((p) => (p - 1 + featuredEvents.length) % featuredEvents.length);

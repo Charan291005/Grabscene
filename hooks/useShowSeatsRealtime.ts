@@ -7,10 +7,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[], currentUserId: string) {
-  const [seats, setSeats] = useState<ShowSeat[]>(initialSeats);
+export function useShowSeatsRealtime(showId: string, currentUserId: string) {
+  const [seats, setSeats] = useState<ShowSeat[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     let isCancelled = false;
 
@@ -27,29 +28,27 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[], c
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setSeats((data as any[]).map((seat) => {
-        const localSeat = initialSeats.find(s => s.id === seat.seat_id);
-        const sectionName = seat.seats?.venue_sections?.name;
+        const sectionName = seat.seats?.venue_sections?.name || 'Standard';
         
-        let category = localSeat?.category;
-        if (!category) {
-          const lowerSec = sectionName?.toLowerCase() || '';
-          category = lowerSec.includes('vip') || lowerSec.includes('pit') || lowerSec.includes('orchestra') ? 'VIP' 
-                   : lowerSec.includes('premium') || lowerSec.includes('mezzanine') || lowerSec.includes('lower') ? 'Premium' 
-                   : 'Standard';
-        }
+        let category = 'Standard';
+        const lowerSec = sectionName.toLowerCase();
+        category = lowerSec.includes('vip') || lowerSec.includes('pit') || lowerSec.includes('orchestra') ? 'VIP' 
+                  : lowerSec.includes('premium') || lowerSec.includes('mezzanine') || lowerSec.includes('lower') ? 'Premium' 
+                  : 'Standard';
 
         return {
           id: seat.id,
-          row: seat.seats?.row_identifier ?? localSeat?.row ?? '?',
-          seatNumber: seat.seats?.seat_identifier ?? localSeat?.seatNumber ?? '?',
+          row: seat.seats?.row_identifier ?? '?',
+          seatNumber: seat.seats?.seat_identifier ?? '?',
           category,
           status: seat.status,
           price: Number(seat.price),
           heldByMe: seat.status === 'held' && seat.held_by === currentUserId,
           holdExpiresAt: seat.hold_expires_at,
-          section: sectionName ?? localSeat?.section ?? 'Standard',
+          section: sectionName,
         };
       }));
+      setIsLoading(false);
     };
 
     loadSeats();
@@ -212,5 +211,5 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[], c
     };
   }, [showId, currentUserId]);
 
-  return { seats, setSeats, optimisticHoldSeats, error };
+  return { seats, error, isLoading, optimisticHoldSeats };
 }

@@ -11,13 +11,13 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { cn } from '../../../lib/utils';
 import { BrandLogo } from '../../../components/BrandLogo';
-import { createDemoSeats, getEvent } from '../../../lib/events';
+import { BrandLogo } from '../../../components/BrandLogo';
 
 export default function ShowBookingPage() {
   const params = useParams();
   const router = useRouter();
-  const showId = typeof params.id === 'string' ? params.id : 'default-show';
-  const event = getEvent(showId);
+  const showId = typeof params.id === 'string' ? params.id : '';
+  const [event, setEvent] = useState<any>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,11 +32,35 @@ export default function ShowBookingPage() {
         setCurrentUserId(session?.user?.id || null);
       });
 
+      // Fetch Show and Event details
+      if (showId) {
+        supabaseBrowser
+          .from('shows')
+          .select('id, start_time, events (id, title, description, image_url), venues (name, location)')
+          .eq('id', showId)
+          .single()
+          .then(({ data, error }) => {
+            if (data && !error) {
+              const startDate = new Date(data.start_time);
+              setEvent({
+                id: data.events?.id,
+                title: data.events?.title,
+                description: data.events?.description,
+                image: data.events?.image_url || '/events/hans-zimmer.jpg',
+                date: startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }),
+                time: startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                venue: data.venues?.name,
+                city: data.venues?.location,
+              });
+            }
+          });
+      }
+
       return () => subscription.unsubscribe();
     });
-  }, []);
+  }, [showId]);
   
-  const { seats, optimisticHoldSeats } = useShowSeatsRealtime(showId, createDemoSeats(showId) as ShowSeat[], currentUserId || '');
+  const { seats, optimisticHoldSeats, isLoading: seatsLoading } = useShowSeatsRealtime(showId, currentUserId || '');
   const [selectedSeatIds, setSelectedSeatIds] = useState<Set<string>>(new Set());
   const [isHolding, setIsHolding] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
@@ -104,24 +128,41 @@ export default function ShowBookingPage() {
         <header className="mb-4 flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-[#0a151d]/90 p-4 shadow-xl backdrop-blur-sm lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <BrandLogo compact />
-            <div className="min-w-0">
-            <div className="inline-flex items-center rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-400 transition-colors mb-3">
-              Live Booking · {availableSeats} seats available
-            </div>
-              <h1 className="truncate text-2xl font-bold tracking-tight text-white md:text-3xl">{event.title}</h1>
-              <p className="truncate text-sm text-zinc-400">{event.venue}, {event.city} · {event.date} · {event.time}</p>
-            </div>
+            {event ? (
+              <div className="min-w-0">
+                <div className="inline-flex items-center rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-400 transition-colors mb-3">
+                  Live Booking · {availableSeats} seats available
+                </div>
+                <h1 className="truncate text-2xl font-bold tracking-tight text-white md:text-3xl">{event.title}</h1>
+                <p className="truncate text-sm text-zinc-400">{event.venue}, {event.city} · {event.date} · {event.time}</p>
+              </div>
+            ) : (
+              <div className="animate-pulse space-y-2">
+                <div className="h-6 bg-zinc-800 rounded w-48"></div>
+                <div className="h-4 bg-zinc-800 rounded w-64"></div>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-4 lg:shrink-0">
-            <div className="relative hidden h-16 w-28 overflow-hidden rounded-lg border border-white/10 sm:block">
-              <Image src={event.image} alt={`${event.title} event artwork`} fill className="object-cover" sizes="112px" />
-            </div>
+            {event && (
+              <div className="relative hidden h-16 w-28 overflow-hidden rounded-lg border border-white/10 sm:block">
+                <Image src={event.image} alt={`${event.title} event artwork`} fill className="object-cover" sizes="112px" />
+              </div>
+            )}
             <SeatLegend />
           </div>
         </header>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0 relative">
+        {(!event || seatsLoading) ? (
+          <div className="flex-1 flex items-center justify-center border border-white/[0.07] bg-[#0a151d]/50 rounded-2xl">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-zinc-400 animate-pulse">Loading venue layout...</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0 relative">
           
           {/* Seat Map Container */}
           <div className="flex-1 relative rounded-2xl overflow-hidden shadow-2xl bg-[#090D16] border border-zinc-800/50">
@@ -171,8 +212,9 @@ export default function ShowBookingPage() {
             category={waitlistCategory}
             showId={showId}
             userId={currentUserId || ''}
-          />
-        </div>
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -7,14 +7,14 @@ import { useHoldTimer } from '../../../hooks/useHoldTimer';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Check, Clock, CreditCard, LockKeyhole, Smartphone, Wallet } from 'lucide-react';
-import { getEvent } from '../../../lib/events';
+import { Check, Clock, CreditCard, LockKeyhole, Smartphone, Wallet } from 'lucide-react';
 
 export default function CheckoutPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const params = useParams();
   const router = useRouter();
   
-  const [selectedEvent, setSelectedEvent] = useState(() => getEvent("55551111-5555-1111-5555-111155551111"));
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   
   // Dynamic state for selected seats loaded from sessionStorage
   const [selectedSeats, setSelectedSeats] = useState<{id: string; row: string; seatNumber: string; category: string; price: number}[]>([]);
@@ -66,7 +66,7 @@ export default function CheckoutPage() {
 
   const { remainingMs, formattedTime, isExpired, isLowTime, releaseManually } = useHoldTimer({
     expiresAtIso,
-    showId: selectedEvent.id,
+    showId: selectedEvent?.id || 'default',
     seatIds,
     userId,
     onExpire: handleExpire
@@ -77,7 +77,11 @@ export default function CheckoutPage() {
 
   const handleCancel = () => {
     releaseManually();
-    router.push(`/shows/${selectedEvent.id}`);
+    if (selectedEvent) {
+      router.push(`/shows/${selectedEvent.id}`);
+    } else {
+      router.push('/');
+    }
   };
 
   const handlePay = async () => {
@@ -97,7 +101,7 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          showId: selectedEvent.id,
+          showId: selectedEvent?.id || 'default',
           seatIds: seatIds,
           userId: userId,
           userEmail: email
@@ -132,6 +136,14 @@ export default function CheckoutPage() {
       setIsProcessing(false);
     }
   };
+
+  if (!selectedEvent) {
+    return (
+      <div className="min-h-screen bg-[#050810] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#050810] text-zinc-100 p-4 md:p-8 font-sans">

@@ -7,7 +7,6 @@ import { Download, Share2, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
 import { BrandLogo } from '@/components/BrandLogo';
-import { getEvent } from '@/lib/events';
 
 interface BookingData {
   id: string;
@@ -28,7 +27,7 @@ export default function TicketPassPage() {
   const ticketRef = useRef<HTMLDivElement>(null);
   const [booking, setBooking] = useState<BookingData | null>(null);
   const [isLoadingBooking, setIsLoadingBooking] = useState(true);
-  const [selectedEvent, setSelectedEvent] = useState(() => getEvent("55551111-5555-1111-5555-111155551111"));
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [isDownloading, setIsDownloading] = useState(false);
@@ -63,10 +62,10 @@ export default function TicketPassPage() {
           booking_ref: reference,
           total_amount: seats.reduce((sum: number, s: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + (s.price || 0), 0),
           status: 'confirmed',
-          event_title: selectedEvent.title,
-          venue_name: `${selectedEvent.venue}, ${selectedEvent.city}`,
-          show_date: selectedEvent.date,
-          show_time: selectedEvent.time,
+          event_title: selectedEvent?.title || 'Event Title',
+          venue_name: selectedEvent ? `${selectedEvent.venue}, ${selectedEvent.city}` : 'Venue Name',
+          show_date: selectedEvent?.date || 'Date',
+          show_time: selectedEvent?.time || 'Time',
           seats: seats.map((s: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
             row: s.row || '?',
             number: s.seatNumber || '?',
@@ -82,10 +81,10 @@ export default function TicketPassPage() {
           booking_ref: reference,
           total_amount: 0,
           status: 'confirmed',
-          event_title: selectedEvent.title,
-          venue_name: `${selectedEvent.venue}, ${selectedEvent.city}`,
-          show_date: selectedEvent.date,
-          show_time: selectedEvent.time,
+          event_title: selectedEvent?.title || 'Event Title',
+          venue_name: selectedEvent ? `${selectedEvent.venue}, ${selectedEvent.city}` : 'Venue Name',
+          show_date: selectedEvent?.date || 'Date',
+          show_time: selectedEvent?.time || 'Time',
           seats: [],
           qr_code_url: null,
         });

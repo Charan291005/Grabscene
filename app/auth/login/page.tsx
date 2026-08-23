@@ -17,12 +17,16 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    await submitLogin(email, password);
+  };
+
+  const submitLogin = async (loginEmail: string, loginPass: string) => {
     setIsLoading(true);
     setError(null);
 
     const { error: authError } = await supabaseBrowser.auth.signInWithPassword({
-      email,
-      password,
+      email: loginEmail,
+      password: loginPass,
     });
 
     if (authError) {
@@ -33,6 +37,17 @@ export default function LoginPage() {
 
     router.push("/");
     router.refresh();
+  };
+
+  const handleDemoLogin = (role: 'admin' | 'organiser' | 'customer') => {
+    const creds = {
+      admin: { e: 'admin@grabscene.app', p: 'test1234' },
+      organiser: { e: 'organiser@grabscene.app', p: 'test1234' },
+      customer: { e: 'customer1@example.com', p: 'test1234' }
+    };
+    setEmail(creds[role].e);
+    setPassword(creds[role].p);
+    submitLogin(creds[role].e, creds[role].p);
   };
 
   return (
@@ -134,6 +149,31 @@ export default function LoginPage() {
                 Create one
               </Link>
             </p>
+          </div>
+          <div className="mt-8 pt-6 border-t border-zinc-800">
+            <p className="text-center text-sm font-medium text-zinc-400 mb-4">
+              Judge Evaluation (1-Click Logins)
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handleDemoLogin('customer')}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl text-sm font-medium text-white transition-colors"
+              >
+                Login as Demo Customer
+              </button>
+              <button
+                onClick={() => handleDemoLogin('organiser')}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl text-sm font-medium text-white transition-colors"
+              >
+                Login as Demo Organiser
+              </button>
+              <button
+                onClick={() => handleDemoLogin('admin')}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl text-sm font-medium text-white transition-colors"
+              >
+                Login as Demo Admin
+              </button>
+            </div>
           </div>
         </div>
 

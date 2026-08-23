@@ -21,6 +21,7 @@ export default function CreateEventPage() {
   const [eventType, setEventType] = useState<'movie' | 'concert' | 'other'>('concert');
   const [venueId, setVenueId] = useState('');
   const [dateTime, setDateTime] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [vipPrice, setVipPrice] = useState('150.00');
   const [premiumPrice, setPremiumPrice] = useState('85.00');
   const [standardPrice, setStandardPrice] = useState('45.00');
@@ -78,6 +79,7 @@ export default function CreateEventPage() {
           eventType,
           venueId,
           startTime: new Date(dateTime).toISOString(),
+          imageUrl,
           organiserId: user?.id || '22222222-2222-2222-2222-222222222222',
           pricing: {
             VIP: parseFloat(vipPrice) || 150,
@@ -172,6 +174,18 @@ export default function CreateEventPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 transition-colors"
                   placeholder="Event description..."
+                />
+              </div>
+
+              <div>
+                <label htmlFor="event-image-url" className="block text-sm font-medium text-zinc-400 mb-2">Image URL (Optional)</label>
+                <input
+                  id="event-image-url"
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 transition-colors"
+                  placeholder="https://example.com/poster.jpg"
                 />
               </div>
 

@@ -6,7 +6,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder
 
 export async function POST(request: Request) {
   try {
-    const { title, description, eventType, venueId, startTime, endTime, pricing, organiserId } = await request.json();
+    const { title, description, eventType, venueId, startTime, endTime, pricing, organiserId, imageUrl } = await request.json();
 
     if (!title || !venueId || !startTime || !organiserId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
         title,
         description: description || null,
         event_type: eventType || 'concert',
+        image_url: imageUrl || null,
       })
       .select('id')
       .single();

@@ -4,7 +4,6 @@ import { generateTicketQRCode } from '../../../../lib/qrcode';
 import { sendEmail } from '../../../../lib/email';
 import { TicketConfirmationEmail } from '../../../../components/emails/TicketConfirmationEmail';
 import React from 'react';
-import { getEvent } from '../../../../lib/events';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder';
@@ -19,9 +18,29 @@ export async function POST(request: Request) {
 
     // Generate secure booking reference on the server
     const bookingRef = `GS-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-    const event = getEvent(showId);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Fetch real event details
+    const { data: showData, error: showError } = await supabase
+      .from('shows')
+      .select('start_time, events(id, title), venues(name, location)')
+      .eq('id', showId)
+      .single();
+
+    if (showError || !showData) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
+
+    const startDate = new Date(showData.start_time);
+    const event = {
+      id: showData.events?.id,
+      title: showData.events?.title,
+      venue: showData.venues?.name,
+      city: showData.venues?.location,
+      date: startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }),
+      time: startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    };
 
     // MOCK BYPASS FOR LOCAL TESTING
     if (supabaseUrl.includes('placeholder')) {
@@ -75,12 +94,17 @@ export async function POST(request: Request) {
       .update({ qr_code_url: qrCodeDataUrl })
       .eq('id', bookingId);
 
-    // Prepare mock seat info for the email template
-    const seatsInfo = seatIds.map((id: string, index: number) => ({
-      row: String.fromCharCode(65 + index), // E.g., A, B, C
-      number: String(index + 1),
-      category: 'Premium',
-      price: 85.00
+    // Fetch real seat info for the email template
+    const { data: seatData } = await supabase
+      .from('show_seats')
+      .select('price, seats(row_identifier, seat_identifier, venue_sections(name))')
+      .in('id', seatIds);
+
+    const seatsInfo = (seatData || []).map((s: any) => ({
+      row: s.seats?.row_identifier || '?',
+      number: s.seats?.seat_identifier || '?',
+      category: s.seats?.venue_sections?.name || 'Standard',
+      price: Number(s.price)
     }));
 
     // 4. Asynchronously send transactional email

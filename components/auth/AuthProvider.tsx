@@ -28,6 +28,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabaseBrowser
+      .from("profiles")
+      .select("id, email, role")
+      .eq("id", userId)
+      .single();
+
+    if (data) {
+      setProfile(data);
+    }
+  };
+
   useEffect(() => {
     // Get initial session
     supabaseBrowser.auth.getSession().then(({ data: { session: s } }) => {
@@ -56,17 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabaseBrowser
-      .from("profiles")
-      .select("id, email, role")
-      .eq("id", userId)
-      .single();
 
-    if (data) {
-      setProfile(data);
-    }
-  };
 
   const signOut = async () => {
     await supabaseBrowser.auth.signOut();

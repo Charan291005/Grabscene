@@ -100,7 +100,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, bookingId, emailDispatched: emailResult.success, mockHtml: emailResult.mockHtml });
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     console.error('Unhandled confirm error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

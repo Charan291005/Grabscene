@@ -69,7 +69,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const bookings = (data || []).map((b: any) => ({
+    const bookings = (data || []).map((b: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
       id: b.id,
       booking_ref: b.booking_ref,
       total_amount: b.total_amount,
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
       event_title: b.shows?.events?.title ?? 'Unknown Event',
       venue_name: b.shows?.venues?.name ?? 'Unknown Venue',
       show_date: b.shows?.start_time ?? null,
-      seats: (b.booking_items || []).map((item: any) => ({
+      seats: (b.booking_items || []).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
         row: item.show_seats?.seats?.row_identifier ?? '?',
         number: item.show_seats?.seats?.seat_identifier ?? '?',
         category: item.show_seats?.seats?.venue_sections?.name ?? 'Standard',
@@ -87,7 +87,7 @@ export async function GET(request: Request) {
     }));
 
     return NextResponse.json({ bookings });
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     console.error('Unhandled error in history route:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

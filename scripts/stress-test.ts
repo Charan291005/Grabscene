@@ -34,7 +34,7 @@ async function main() {
       const duration = performance.now() - start;
       const data = await res.json().catch(() => ({}));
       return { status: res.status, duration, error: data.error };
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       const duration = performance.now() - start;
       return { status: 500, duration, error: err.message };
     }

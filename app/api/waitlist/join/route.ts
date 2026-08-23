@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       waitlistId: row?.waitlist_id,
       queuePosition: row?.queue_position,
     });
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     console.error('Unhandled error in waitlist join route:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

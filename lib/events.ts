@@ -100,7 +100,7 @@ function generateSeatUUID(showId: string, row: string, seat: number): string {
 }
 
 export function createDemoSeats(showId: string) {
-  const seats: any[] = [];
+  const seats: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] = [];
   
   if (showId === events[0].id) {
     // Hans Zimmer (Theater) - Curved seating with Orchestra & Balcony

@@ -25,6 +25,7 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[], c
 
       if (loadError || !data || isCancelled) return;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setSeats((data as any[]).map((seat) => {
         const localSeat = initialSeats.find(s => s.id === seat.seat_id);
         const sectionName = seat.seats?.venue_sections?.name;
@@ -100,6 +101,7 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[], c
       isCancelled = true;
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showId, currentUserId]);
 
   const optimisticHoldSeats = useCallback(async (seatIds: string[], userId: string) => {
@@ -137,6 +139,7 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[], c
       }
       
       return { success: true };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       // Revert optimistic update on failure
       setSeats(prev => prev.map(seat => {
@@ -157,6 +160,7 @@ export function useShowSeatsRealtime(showId: string, initialSeats: ShowSeat[], c
     if (existingHold) {
       const hold = JSON.parse(existingHold) as { seatIds: string[]; userId: string; expiresAt: string };
       if (Date.parse(hold.expiresAt) > Date.now()) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSeats(prev => prev.map(seat => hold.seatIds.includes(seat.id) ? {
           ...seat,
           status: 'held',

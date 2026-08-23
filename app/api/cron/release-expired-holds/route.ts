@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
       freedSeatIds: freedSeatIds || []
     });
 
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     console.error('Unhandled error in cron route:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

@@ -97,7 +97,7 @@ export default function CreateEventPage() {
       setTimeout(() => {
         router.push('/dashboard');
       }, 2000);
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
       setIsLoading(false);

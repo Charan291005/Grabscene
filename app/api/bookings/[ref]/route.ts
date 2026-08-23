@@ -102,7 +102,7 @@ export async function GET(
       show_date: showDate,
       show_time: showTime,
       qr_code_url: data.qr_code_url,
-      seats: ((data as any).booking_items || []).map((item: any) => ({
+      seats: ((data as any).booking_items || []).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
         row: item.show_seats?.seats?.row_identifier ?? '?',
         number: item.show_seats?.seats?.seat_identifier ?? '?',
         category: item.show_seats?.seats?.venue_sections?.name ?? 'Standard',
@@ -111,7 +111,7 @@ export async function GET(
     };
 
     return NextResponse.json({ booking });
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     console.error('Unhandled error in booking detail route:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

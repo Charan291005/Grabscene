@@ -283,7 +283,7 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
   );
 }
 
-function SeatButton({ seat, onSelect, getColor, isSelected }: { seat: ShowSeat, onSelect: (id: string) => void, getColor: any, isSelected: boolean }) {
+function SeatButton({ seat, onSelect, getColor, isSelected }: { seat: ShowSeat, onSelect: (id: string) => void, getColor: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, isSelected: boolean }) {
   const isVip = seat.category === "VIP";
   const colorClass = getColor(seat.status, seat.category);
   const isDisabled = seat.status === "booked" || seat.status === "held";

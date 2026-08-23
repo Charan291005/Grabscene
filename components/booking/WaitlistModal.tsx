@@ -107,7 +107,7 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId, userId, secti
             </div>
 
             <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 mb-8 text-sm text-amber-400/80">
-              <p>When a seat opens, you'll receive an email with a <strong>10-minute time-limited link</strong> to claim it. If you don't act in time, it goes to the next person.</p>
+              <p>When a seat opens, you&apos;ll receive an email with a <strong>10-minute time-limited link</strong> to claim it. If you don&apos;t act in time, it goes to the next person.</p>
             </div>
 
             {error && (
@@ -136,7 +136,7 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId, userId, secti
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">You&apos;re on the list!</h2>
             <p className="text-zinc-400">
-              We'll email you immediately if a {category} ticket becomes available. You will have 10 minutes to claim it.
+              We&apos;ll email you immediately if a {category} ticket becomes available. You will have 10 minutes to claim it.
             </p>
             {queuePosition && (
               <p className="text-cyan-400 font-semibold mt-4">

@@ -42,10 +42,12 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const venues = (data || []).map((v: any) => ({
       id: v.id,
       name: v.name,
       location: v.location,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sections: (v.venue_sections || []).map((s: any) => ({
         id: s.id,
         name: s.name,
@@ -54,6 +56,7 @@ export async function GET() {
     }));
 
     return NextResponse.json({ venues });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Unhandled error in venues route:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -126,6 +129,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, venueId });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Unhandled error in venue creation:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

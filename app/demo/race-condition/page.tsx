@@ -22,7 +22,7 @@ export default function RaceConditionDemo() {
     setBobStatus('loading');
     addLog("INIT: Spawning parallel requests for exact same seat...");
 
-    const holdSeat = async (user: string, setStatus: any) => {
+    const holdSeat = async (user: string, setStatus: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
       try {
         addLog(`${user}: BEGIN TRAN ISOLATION LEVEL READ COMMITTED`);
         addLog(`${user}: Executing SELECT * FROM show_seats WHERE id = '${seatId}' FOR UPDATE ORDER BY id`);

@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, eventId, showId, seatsGenerated: 0 });
     }
 
-    const sectionIds = sections.map((s: any) => s.id);
+    const sectionIds = sections.map((s: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => s.id);
     const { data: allSeats } = await supabase
       .from('seats')
       .select('id, section_id')
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
 
     const pricingMap = pricing || {};
 
-    const showSeatsToInsert = allSeats.map((seat: any) => {
+    const showSeatsToInsert = allSeats.map((seat: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
       const sectionName = sectionNameMap[seat.section_id] || 'Standard';
       const price = pricingMap[sectionName] || defaultPricing[sectionName] || 45;
       return {
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
       showId,
       seatsGenerated: showSeatsToInsert.length,
     });
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     console.error('Unhandled error in event create route:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

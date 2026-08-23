@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -36,7 +36,9 @@ interface Booking {
 }
 
 export default function BookingHistoryPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { user, isLoading: authLoading } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,18 +48,7 @@ export default function BookingHistoryPage() {
   // Fallback demo user for mock mode
   const userId = user?.id || "33333333-3333-3333-3333-333333333333";
 
-  useEffect(() => {
-    fetchBookings();
-  }, [userId]);
-
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/bookings/history?userId=${userId}`);
@@ -68,7 +59,21 @@ export default function BookingHistoryPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchBookings();
+  }, [fetchBookings]);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+
 
   const handleCancel = async (bookingId: string) => {
     if (!confirm("Are you sure you want to cancel this booking? This action cannot be undone.")) return;

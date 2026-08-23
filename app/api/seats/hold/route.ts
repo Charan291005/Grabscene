@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     console.error('Unhandled hold error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

@@ -14,14 +14,10 @@ export async function POST(request: Request) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // MOCK BYPASS
-    if (supabaseUrl.includes('placeholder')) {
-      return NextResponse.json({
-        success: true,
-        eventId: 'mock-event-id',
-        showId: 'mock-show-id',
-        seatsGenerated: 0,
-      });
+    // Check if user is organiser or admin
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', organiserId).single();
+    if (!profile || (profile.role !== 'organiser' && profile.role !== 'admin')) {
+      return NextResponse.json({ error: 'Unauthorized: Organiser role required' }, { status: 403 });
     }
 
     // 1. Create event

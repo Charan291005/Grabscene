@@ -9,30 +9,6 @@ export async function GET() {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    if (supabaseUrl.includes('placeholder')) {
-      return NextResponse.json({
-        venues: [
-          {
-            id: 'aaaa1111-aaaa-1111-aaaa-1111aaaa1111',
-            name: 'Grand Horizon IMAX Cinema',
-            location: 'New York',
-            sections: [
-              { id: 'cccc3333-cccc-3333-cccc-3333cccc3333', name: 'VIP', seatCount: 2 },
-              { id: 'dddd4444-dddd-4444-dddd-4444dddd4444', name: 'Standard', seatCount: 2 },
-            ],
-          },
-          {
-            id: 'bbbb2222-bbbb-2222-bbbb-2222bbbb2222',
-            name: 'CyberDome Arena',
-            location: 'London',
-            sections: [
-              { id: 'ffff6666-ffff-6666-ffff-6666ffff6666', name: 'Premium', seatCount: 2 },
-            ],
-          },
-        ],
-      });
-    }
-
     const { data, error } = await supabase
       .from('venues')
       .select('id, name, location, venue_sections(id, name, seats(count))')
@@ -66,16 +42,22 @@ export async function GET() {
 // POST: Create a new venue with sections and seats
 export async function POST(request: Request) {
   try {
-    const { name, location, sections } = await request.json();
+    const { name, location, sections, userId } = await request.json();
 
     if (!name || !sections || sections.length === 0) {
       return NextResponse.json({ error: 'Missing venue name or sections' }, { status: 400 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized: Missing userId' }, { status: 401 });
+    }
 
-    if (supabaseUrl.includes('placeholder')) {
-      return NextResponse.json({ success: true, venueId: 'mock-venue-id' });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Check if user is admin
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
+    if (!profile || profile.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized: Admin role required' }, { status: 403 });
     }
 
     // 1. Create venue

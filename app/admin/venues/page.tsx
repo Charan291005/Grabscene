@@ -14,6 +14,7 @@ import {
   Save,
   X,
 } from "lucide-react";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface VenueSection {
   id: string;
@@ -38,6 +39,7 @@ export default function AdminVenuesPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const { user } = useAuth();
 
   // Create form state
   const [newVenueName, setNewVenueName] = useState("");
@@ -106,6 +108,7 @@ export default function AdminVenuesPage() {
           name: newVenueName,
           location: newVenueLocation,
           sections: newSections,
+          userId: user?.id,
         }),
       });
 

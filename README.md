@@ -4,7 +4,7 @@ GrabScene is a robust, concurrent event ticketing platform built with Next.js an
 
 ## 🚀 Hosted Application
 
-**Live URL:** [https://grabscene-rho.vercel.app](https://grabscene-rho.vercel.app) *(or whichever standard Vercel URL was generated)*
+**Live URL:** [https://grabscene.vercel.app](https://grabscene.vercel.app) *(or whichever standard Vercel URL was generated)*
 
 ### Judge Evaluation (1-Click Logins)
 To bypass registration and easily evaluate the Role-Based Access Control (RBAC):

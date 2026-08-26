@@ -73,40 +73,50 @@ export async function POST(request: Request) {
 
     const venueId = venueData.id;
 
-    // 2. Create sections and seats
-    for (const section of sections) {
-      const { data: sectionData, error: sectionError } = await supabase
-        .from('venue_sections')
-        .insert({ venue_id: venueId, name: section.name })
-        .select('id')
-        .single();
+    // 2. Create all sections
+    const sectionsToInsert = sections.map((s: any) => ({
+      venue_id: venueId,
+      name: s.name,
+    }));
 
-      if (sectionError) {
-        console.error('Section creation error:', sectionError);
-        continue;
-      }
+    const { data: createdSections, error: sectionsError } = await supabase
+      .from('venue_sections')
+      .insert(sectionsToInsert)
+      .select('id, name');
 
-      const sectionId = sectionData.id;
-      const rows = section.rows || 5;
-      const seatsPerRow = section.seatsPerRow || 10;
+    if (sectionsError) {
+      return NextResponse.json({ error: sectionsError.message }, { status: 500 });
+    }
 
-      const seatsToInsert = [];
+    // 3. Create all seats for all sections
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allSeatsToInsert: any[] = [];
+
+    for (const createdSection of createdSections || []) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const originalSection = sections.find((s: any) => s.name === createdSection.name);
+      if (!originalSection) continue;
+
+      const sectionId = createdSection.id;
+      const rows = originalSection.rows || 5;
+      const seatsPerRow = originalSection.seatsPerRow || 10;
+
       for (let r = 0; r < rows; r++) {
         const rowLabel = String.fromCharCode(65 + r);
         for (let s = 1; s <= seatsPerRow; s++) {
-          seatsToInsert.push({
+          allSeatsToInsert.push({
             section_id: sectionId,
             row_identifier: rowLabel,
             seat_identifier: String(s),
           });
         }
       }
+    }
 
-      if (seatsToInsert.length > 0) {
-        const { error: seatsError } = await supabase.from('seats').insert(seatsToInsert);
-        if (seatsError) {
-          console.error('Seats creation error:', seatsError);
-        }
+    if (allSeatsToInsert.length > 0) {
+      const { error: seatsError } = await supabase.from('seats').insert(allSeatsToInsert);
+      if (seatsError) {
+        console.error('Seats bulk creation error:', seatsError);
       }
     }
 

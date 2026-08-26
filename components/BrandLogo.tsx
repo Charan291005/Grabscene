@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Ticket } from "lucide-react";
+import { memo } from "react";
 
 type BrandLogoProps = {
   compact?: boolean;
   href?: string;
 };
 
-export function BrandLogo({ compact = false, href = "/" }: BrandLogoProps) {
+export const BrandLogo = memo(function BrandLogo({ compact = false, href = "/" }: BrandLogoProps) {
   const logo = (
     <div className={`flex items-center gap-2 ${compact ? 'scale-90 origin-left' : ''}`}>
       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-500 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.3)] shrink-0">
@@ -34,4 +35,4 @@ export function BrandLogo({ compact = false, href = "/" }: BrandLogoProps) {
   ) : (
     logo
   );
-}
+});

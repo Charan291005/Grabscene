@@ -17,30 +17,37 @@ async function main() {
   console.log("==========================================\n");
   console.log(`Target Show: ${showId}`);
   console.log(`Target Seat: ${seatId}`);
-  console.log(`Concurrency: 50 parallel requests\n`);
+  console.log(`Concurrency: 50 parallel requests (Batched)\n`);
 
-  const requests = Array.from({ length: 50 }).map(async (_, i) => {
-    const start = performance.now();
-    try {
-      const res = await fetch('http://localhost:3000/api/seats/hold', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          showId,
-          seatIds: [seatId],
-          userId
-        })
-      });
-      const duration = performance.now() - start;
-      const data = await res.json().catch(() => ({}));
-      return { status: res.status, duration, error: data.error };
-    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-      const duration = performance.now() - start;
-      return { status: 500, duration, error: err.message };
-    }
-  });
+  const totalRequests = 50;
+  const batchSize = 10;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const results: any[] = [];
 
-  const results = await Promise.all(requests);
+  for (let i = 0; i < totalRequests; i += batchSize) {
+    const batch = Array.from({ length: Math.min(batchSize, totalRequests - i) }).map(async () => {
+      const start = performance.now();
+      try {
+        const res = await fetch('http://localhost:3000/api/seats/hold', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            showId,
+            seatIds: [seatId],
+            userId
+          })
+        });
+        const duration = performance.now() - start;
+        const data = await res.json().catch(() => ({}));
+        return { status: res.status, duration, error: data.error };
+      } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+        const duration = performance.now() - start;
+        return { status: 500, duration, error: err.message };
+      }
+    });
+
+    results.push(...(await Promise.all(batch)));
+  }
 
   let successCount = 0;
   let conflictCount = 0;

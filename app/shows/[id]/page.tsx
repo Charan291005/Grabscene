@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { SeatMap } from '../../../components/booking/SeatMap';
+import dynamic from 'next/dynamic';
+const SeatMap = dynamic(() => import('../../../components/booking/SeatMap').then(m => m.SeatMap), { 
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center bg-[#F8FAFC]">
+      <div className="flex flex-col items-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-bms-red/20 border-t-bms-red mb-4" />
+        <p className="text-slate-500 font-medium animate-pulse">Loading Seat Layout...</p>
+      </div>
+    </div>
+  )
+});
 import { SeatLegend } from '../../../components/booking/SeatLegend';
 import { BookingSummarySidebar } from '../../../components/booking/BookingSummarySidebar';
 import { WaitlistModal } from '../../../components/booking/WaitlistModal';

@@ -4,6 +4,7 @@ import "./globals.css";
 import { EvaluatorToolbar } from "@/components/demo/EvaluatorToolbar";
 import { EmailPreviewDrawer } from "@/components/demo/EmailPreviewDrawer";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { createClient } from "@/utils/supabase/server";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -43,21 +44,35 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  let profile = null;
+  if (session?.user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, email, role")
+      .eq("id", session.user.id)
+      .single();
+    profile = data;
+  }
   return (
     <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="min-h-full flex flex-col antialiased font-sans bg-[#071217] text-zinc-100">
+      <body className="min-h-full flex flex-col antialiased font-sans bg-slate-50 text-slate-900">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-cyan-500 focus:text-cyan-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-semibold"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-bms-red focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:font-semibold"
         >
           Skip to main content
         </a>
-        <AuthProvider>
+        <AuthProvider initialSession={session} initialProfile={profile}>
           {children}
           <EvaluatorToolbar />
           <EmailPreviewDrawer />

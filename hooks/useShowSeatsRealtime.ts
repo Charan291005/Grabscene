@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ShowSeat } from '../types/booking';
+import { ShowSeat, SeatCategory } from '../types/booking';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase Client
@@ -26,11 +26,11 @@ export function useShowSeatsRealtime(showId: string, currentUserId: string) {
 
       if (loadError || !data || isCancelled) return;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       setSeats((data as any[]).map((seat) => {
         const sectionName = seat.seats?.venue_sections?.name || 'Standard';
         
-        let category = 'Standard';
+        let category: SeatCategory = 'Standard';
         const lowerSec = sectionName.toLowerCase();
         category = lowerSec.includes('vip') || lowerSec.includes('pit') || lowerSec.includes('orchestra') ? 'VIP' 
                   : lowerSec.includes('premium') || lowerSec.includes('mezzanine') || lowerSec.includes('lower') ? 'Premium' 
@@ -100,7 +100,7 @@ export function useShowSeatsRealtime(showId: string, currentUserId: string) {
       isCancelled = true;
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [showId, currentUserId]);
 
   const optimisticHoldSeats = useCallback(async (seatIds: string[], userId: string) => {
@@ -143,7 +143,7 @@ export function useShowSeatsRealtime(showId: string, currentUserId: string) {
       }
       
       return { success: true };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err: any) {
       // Revert optimistic update on failure
       setSeats(prev => prev.map(seat => {
@@ -164,7 +164,7 @@ export function useShowSeatsRealtime(showId: string, currentUserId: string) {
     if (existingHold) {
       const hold = JSON.parse(existingHold) as { seatIds: string[]; userId: string; expiresAt: string };
       if (Date.parse(hold.expiresAt) > Date.now()) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setSeats(prev => prev.map(seat => hold.seatIds.includes(seat.id) ? {
           ...seat,
           status: 'held',

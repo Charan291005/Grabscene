@@ -21,7 +21,7 @@ async function main() {
 
   const totalRequests = 50;
   const batchSize = 10;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const results: any[] = [];
 
   for (let i = 0; i < totalRequests; i += batchSize) {
@@ -40,7 +40,7 @@ async function main() {
         const duration = performance.now() - start;
         const data = await res.json().catch(() => ({}));
         return { status: res.status, duration, error: data.error };
-      } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+      } catch (err: any  ) {
         const duration = performance.now() - start;
         return { status: 500, duration, error: err.message };
       }

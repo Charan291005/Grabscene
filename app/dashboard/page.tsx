@@ -122,8 +122,8 @@ export default function DashboardOverview() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050810] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-bms-red border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -136,21 +136,21 @@ export default function DashboardOverview() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#050810] text-zinc-100 p-8 font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-8 font-sans">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <div>
             <BrandLogo compact />
-            <h1 className="text-3xl font-bold text-white tracking-tight">Organiser Dashboard</h1>
-            <p className="text-zinc-400 mt-1">Overview of your events and revenue metrics.</p>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Organiser Dashboard</h1>
+            <p className="text-slate-500 mt-1">Overview of your events and revenue metrics.</p>
           </div>
           <div className="flex items-center gap-3">
             {profile?.role === 'admin' && (
-              <Link href="/admin/venues" className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold rounded-xl flex items-center gap-2 transition-colors border border-zinc-700">
+              <Link href="/admin/venues" className="px-5 py-2.5 bg-slate-200 hover:bg-zinc-700 text-slate-700 font-semibold rounded-xl flex items-center gap-2 transition-colors border border-zinc-700">
                 Manage Venues
               </Link>
             )}
-            <Link href="/dashboard/events/new" className="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-cyan-950 font-semibold rounded-xl flex items-center gap-2 transition-colors">
+            <Link href="/dashboard/events/new" className="px-5 py-2.5 bg-bms-red hover:bg-bms-red-hover text-white font-semibold rounded-xl flex items-center gap-2 transition-colors">
               <Plus className="w-5 h-5" />
               Create Event
             </Link>
@@ -160,15 +160,15 @@ export default function DashboardOverview() {
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {metricCards.map((m, i) => (
-            <div key={i} className="bg-[#0c111d] border border-zinc-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-cyan-500/5 rounded-full blur-xl group-hover:bg-cyan-500/10 transition-colors" />
+            <div key={i} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-bms-red/5 rounded-full blur-xl group-hover:bg-bms-red/10 transition-colors" />
               <div className="flex justify-between items-start mb-4">
-                <div className="p-2 bg-zinc-900 rounded-lg border border-zinc-800">
-                  <m.icon className="w-5 h-5 text-cyan-400" />
+                <div className="p-2 bg-slate-50 rounded-lg border border-slate-200">
+                  <m.icon className="w-5 h-5 text-bms-red" />
                 </div>
               </div>
-              <p className="text-sm text-zinc-500 font-medium">{m.label}</p>
-              <h3 className="text-3xl font-bold text-white mt-1">{m.value}</h3>
+              <p className="text-sm text-slate-500 font-medium">{m.label}</p>
+              <h3 className="text-3xl font-bold text-slate-900 mt-1">{m.value}</h3>
             </div>
           ))}
         </div>
@@ -177,33 +177,33 @@ export default function DashboardOverview() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Active Events List */}
-          <div className="lg:col-span-2 bg-[#0c111d] border border-zinc-800 rounded-2xl p-6 shadow-xl">
+          <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">Active Events</h2>
+              <h2 className="text-xl font-semibold text-slate-900">Active Events</h2>
             </div>
             
             <div className="space-y-4">
               {events.length === 0 ? (
-                <p className="text-zinc-500 py-4 text-center">No events found. Create one to get started!</p>
+                <p className="text-slate-500 py-4 text-center">No events found. Create one to get started!</p>
               ) : (
                 events.map(event => (
                   <Link key={event.id} href={`/shows/${event.id}`} className="block">
-                    <div className="bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800/50 hover:border-zinc-700 rounded-xl p-4 flex items-center justify-between transition-all">
+                    <div className="bg-slate-50 hover:bg-slate-50 border border-slate-200/50 hover:border-slate-300 rounded-xl p-4 flex items-center justify-between transition-all">
                       <div>
-                        <h3 className="font-bold text-white">{event.title}</h3>
-                        <p className="text-sm text-zinc-500">{event.venue} • {event.date}</p>
+                        <h3 className="font-bold text-slate-900">{event.title}</h3>
+                        <p className="text-sm text-slate-500">{event.venue} • {event.date}</p>
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="text-right">
-                          <p className="text-xs text-zinc-500 mb-1">Occupancy</p>
+                          <p className="text-xs text-slate-500 mb-1">Occupancy</p>
                           <div className="flex items-center gap-2">
-                            <div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                              <div className="h-full bg-cyan-500" style={{ width: `${event.occupancy}%` }} />
+                            <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                              <div className="h-full bg-bms-red" style={{ width: `${event.occupancy}%` }} />
                             </div>
-                            <span className="text-sm font-medium text-zinc-300 w-8">{event.occupancy}%</span>
+                            <span className="text-sm font-medium text-slate-700 w-8">{event.occupancy}%</span>
                           </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-zinc-600" />
+                        <ChevronRight className="w-5 h-5 text-slate-400" />
                       </div>
                     </div>
                   </Link>
@@ -213,14 +213,14 @@ export default function DashboardOverview() {
           </div>
 
           {/* Mini Chart Mock */}
-          <div className="bg-[#0c111d] border border-zinc-800 rounded-2xl p-6 shadow-xl flex flex-col">
-            <h2 className="text-xl font-semibold text-white mb-6">Weekly Revenue</h2>
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl flex flex-col">
+            <h2 className="text-xl font-semibold text-slate-900 mb-6">Weekly Revenue</h2>
             <div className="flex-1 flex items-end gap-2 pt-10">
               {[40, 70, 45, 90, 65, 100, 85].map((h, i) => (
-                <div key={i} className="flex-1 bg-gradient-to-t from-cyan-500/20 to-cyan-400/80 rounded-t-sm" style={{ height: `${h}%` }} />
+                <div key={i} className="flex-1 bg-gradient-to-t from-bms-red/20 to-bms-red-hover/80 rounded-t-sm" style={{ height: `${h}%` }} />
               ))}
             </div>
-            <div className="flex justify-between text-xs text-zinc-500 mt-4">
+            <div className="flex justify-between text-xs text-slate-500 mt-4">
               <span>Mon</span>
               <span>Sun</span>
             </div>
@@ -231,3 +231,4 @@ export default function DashboardOverview() {
     </div>
   );
 }
+

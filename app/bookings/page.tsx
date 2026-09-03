@@ -36,9 +36,9 @@ interface Booking {
 }
 
 export default function BookingHistoryPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const { user, isLoading: authLoading } = useAuth();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +62,7 @@ export default function BookingHistoryPage() {
   }, [userId]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     fetchBookings();
   }, [fetchBookings]);
 

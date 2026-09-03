@@ -112,12 +112,11 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
       )}
 
       {/* Seat Grid */}
-      <div ref={containerRef} className="w-full overflow-x-auto pb-24 px-4 scrollbar-hide">
+      <div ref={containerRef} className="w-full overflow-auto pb-24 px-4 scrollbar-hide" style={{ touchAction: 'pan-x pan-y' }}>
         <div 
-          className={`mx-auto flex flex-col items-center min-w-[max-content] pb-10 ${layout === 'arena' ? 'pt-16' : ''}`}
+          className={`mx-auto flex flex-col items-center min-w-[max-content] pb-10 ${layout === 'arena' ? 'pt-16' : 'pt-10'}`}
           style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}
         >
-          
           {layout === 'arena' && (
             <div className="w-64 h-32 bg-zinc-900 border border-zinc-700 rounded-3xl flex flex-col items-center justify-center text-zinc-500 font-bold tracking-widest uppercase mb-16 shadow-[0_0_50px_rgba(255,255,255,0.05)]">
               <Sparkles className="w-5 h-5 mb-2 text-zinc-600" />
@@ -127,8 +126,7 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
           <div className={`
             ${layout === 'arena' ? 'relative w-[800px] h-[800px] flex items-center justify-center' : 
               layout === 'concert' ? 'flex flex-col items-center gap-8' : 
-              layout === 'theater' ? 'flex flex-col items-center gap-10 perspective-[1000px]' :
-              'flex flex-col items-center gap-16'} 
+              'flex flex-col items-center gap-10'} 
           `}>
             {/* Stage */}
             <div className={`
@@ -176,16 +174,11 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
                 })}
               </>
             ) : (
-            sectionGrid.map(({ sectionName, rows }, sectionIndex) => (
+            <div className={`w-full ${sectionGrid.length > 4 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start' : 'flex flex-col items-center gap-10'}`}>
+            {sectionGrid.map(({ sectionName, rows }, sectionIndex) => (
               <div 
                 key={sectionName} 
-                className={`
-                  flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30 shadow-xl
-                  ${layout === 'theater' && sectionIndex === 0 ? 'rotate-x-[5deg] scale-105' : ''}
-                  ${layout === 'theater' && sectionIndex === 1 ? 'rotate-x-[15deg] translate-y-4 scale-95' : ''}
-                  ${layout === 'theater' && sectionIndex === 2 ? 'rotate-x-[25deg] translate-y-8 scale-90 opacity-80' : ''}
-                `}
-                style={layout === 'theater' ? { transformStyle: 'preserve-3d' } : {}}
+                className="flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30 shadow-xl w-full"
               >
                 <h3 className="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-6 px-6 py-2 border border-zinc-800 rounded-full bg-zinc-900/80 shadow-lg flex items-center gap-2">
                   {(sectionName.toLowerCase().includes('vip') || sectionName.toLowerCase().includes('premium')) && <Sparkles className="w-3 h-3 text-amber-500" />}
@@ -247,7 +240,9 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
                   ))}
                 </div>
               </div>
-            )))}
+            ))}
+            </div>
+            )}
           </div>
         </div>
       </div>
@@ -283,7 +278,7 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
   );
 }
 
-function SeatButton({ seat, onSelect, getColor, isSelected }: { seat: ShowSeat, onSelect: (id: string) => void, getColor: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, isSelected: boolean }) {
+function SeatButton({ seat, onSelect, getColor, isSelected }: { seat: ShowSeat, onSelect: (id: string) => void, getColor: any  , isSelected: boolean }) {
   const isVip = seat.category === "VIP";
   const colorClass = getColor(seat.status, seat.category);
   const isDisabled = seat.status === "booked" || seat.status === "held";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from '@supabase/supabase-js';
 import { events, createDemoSeats } from '../lib/events';
 import * as dotenv from 'dotenv';

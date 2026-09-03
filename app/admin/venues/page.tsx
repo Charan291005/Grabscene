@@ -62,7 +62,7 @@ export default function AdminVenuesPage() {
     }
   }, [toast]);
 
-  const fetchVenues = async () => {
+  async function fetchVenues() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/admin/venues");
@@ -73,7 +73,7 @@ export default function AdminVenuesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   const addSection = () => {
     setNewSections((prev) => [...prev, { name: "", rows: 5, seatsPerRow: 10 }]);

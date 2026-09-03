@@ -28,11 +28,11 @@ export function useHoldTimer({ expiresAtIso, showId, seatIds, userId, onExpire }
 
     // Initial calculation
     const initialRemaining = calculateRemaining();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setRemainingMs(initialRemaining);
     
     if (initialRemaining <= 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setIsExpired(true);
       onExpire();
       return;

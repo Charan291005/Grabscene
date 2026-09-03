@@ -43,8 +43,11 @@ export function useEvents() {
             return {
               id: show.id, // Use show_id for routing
               title: show.events?.title || 'Unknown Event',
-              category: show.events?.event_type === 'concert' ? 'Concerts' 
-                      : show.events?.event_type === 'movie' ? 'Theater' : 'Other',
+              category: show.events?.event_type === 'concert' ? 'Events' 
+                      : show.events?.event_type === 'movie' ? 'Movies' 
+                      : show.events?.event_type === 'play' ? 'Plays'
+                      : show.events?.event_type === 'sport' ? 'Sports'
+                      : 'Activities',
               date: startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }),
               time: startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
               venue: show.venues?.name || 'Unknown Venue',
@@ -52,7 +55,7 @@ export function useEvents() {
               image: show.events?.image_url || '/events/hans-zimmer.jpg', // Fallback
               priceFrom: 45, // Hardcoded for now without a complex subquery
               description: show.events?.description || '',
-              featured: index === 0, // Just feature the first upcoming show
+              featured: index < 5, // Feature the top 5 upcoming shows
             };
           });
           setEvents(mappedEvents);

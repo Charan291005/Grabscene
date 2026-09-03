@@ -33,11 +33,13 @@ export async function POST(request: Request) {
     }
 
     const startDate = new Date(showData.start_time);
+    const eventData = Array.isArray(showData.events) ? showData.events[0] : showData.events;
+    const venueData = Array.isArray(showData.venues) ? showData.venues[0] : showData.venues;
     const event = {
-      id: showData.events?.id,
-      title: showData.events?.title,
-      venue: showData.venues?.name,
-      city: showData.venues?.location,
+      id: eventData?.id,
+      title: eventData?.title,
+      venue: venueData?.name,
+      city: venueData?.location,
       date: startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }),
       time: startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     };
@@ -124,7 +126,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, bookingId, emailDispatched: emailResult.success, mockHtml: emailResult.mockHtml });
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+  } catch (error: any  ) {
     console.error('Unhandled confirm error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

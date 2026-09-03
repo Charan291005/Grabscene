@@ -11,7 +11,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { cn } from '../../../lib/utils';
 import { BrandLogo } from '../../../components/BrandLogo';
-import { BrandLogo } from '../../../components/BrandLogo';
 
 export default function ShowBookingPage() {
   const params = useParams();
@@ -36,21 +35,28 @@ export default function ShowBookingPage() {
       if (showId) {
         supabaseBrowser
           .from('shows')
-          .select('id, start_time, events (id, title, description, image_url), venues (name, location)')
+          .select('id, start_time, events (id, title, description, image_url, event_type), venues (name, location)')
           .eq('id', showId)
           .single()
           .then(({ data, error }) => {
             if (data && !error) {
               const startDate = new Date(data.start_time);
+              const eventData = Array.isArray(data.events) ? data.events[0] : data.events;
+              const venueData = Array.isArray(data.venues) ? data.venues[0] : data.venues;
               setEvent({
-                id: data.events?.id,
-                title: data.events?.title,
-                description: data.events?.description,
-                image: data.events?.image_url || '/events/hans-zimmer.jpg',
+                id: eventData?.id,
+                title: eventData?.title,
+                description: eventData?.description,
+                image: eventData?.image_url || '/events/hans-zimmer.jpg',
+                category: eventData?.event_type === 'concert' ? 'Events' 
+                        : eventData?.event_type === 'movie' ? 'Movies' 
+                        : eventData?.event_type === 'play' ? 'Plays'
+                        : eventData?.event_type === 'sport' ? 'Sports'
+                        : 'Activities',
                 date: startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }),
                 time: startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                venue: data.venues?.name,
-                city: data.venues?.location,
+                venue: venueData?.name,
+                city: venueData?.location,
               });
             }
           });
@@ -122,56 +128,71 @@ export default function ShowBookingPage() {
   }, [toast]);
 
   return (
-    <div className="min-h-screen bg-[#050810] flex flex-col p-4 md:p-6 lg:p-8 font-sans selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-slate-50 flex flex-col p-4 md:p-6 lg:p-8 font-sans selection:bg-cyan-500/30">
       <div className="max-w-[1600px] mx-auto w-full flex-1 flex flex-col">
         {/* Header */}
-        <header className="mb-4 flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-[#0a151d]/90 p-4 shadow-xl backdrop-blur-sm lg:flex-row lg:items-center lg:justify-between">
+        <header className="mb-4 flex flex-col gap-4 rounded-xl border border-slate-200/60 bg-white/80 p-5 shadow-sm backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between transition-all">
           <div className="flex min-w-0 items-center gap-4">
             <BrandLogo compact />
             {event ? (
               <div className="min-w-0">
-                <div className="inline-flex items-center rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-400 transition-colors mb-3">
+                <div className="inline-flex items-center rounded-full border border-bms-red/20 bg-bms-red/5 px-2.5 py-0.5 text-[11px] font-bold text-bms-red uppercase tracking-wider transition-colors mb-3">
                   Live Booking · {availableSeats} seats available
                 </div>
-                <h1 className="truncate text-2xl font-bold tracking-tight text-white md:text-3xl">{event.title}</h1>
-                <p className="truncate text-sm text-zinc-400">{event.venue}, {event.city} · {event.date} · {event.time}</p>
+                <h1 className="truncate text-3xl font-black tracking-tight text-slate-900 md:text-4xl">{event.title}</h1>
+                <p className="truncate text-[14px] font-medium text-slate-500 mt-1">{event.venue}, {event.city} · {event.date} · {event.time}</p>
               </div>
             ) : (
               <div className="animate-pulse space-y-2">
-                <div className="h-6 bg-zinc-800 rounded w-48"></div>
-                <div className="h-4 bg-zinc-800 rounded w-64"></div>
+                <div className="h-8 bg-slate-200 rounded-md w-64"></div>
+                <div className="h-4 bg-slate-200 rounded-md w-48"></div>
               </div>
             )}
           </div>
-          <div className="flex items-center gap-4 lg:shrink-0">
+          <div className="flex items-center gap-5 lg:shrink-0">
             {event && (
-              <div className="relative hidden h-16 w-28 overflow-hidden rounded-lg border border-white/10 sm:block">
-                <Image src={event.image} alt={`${event.title} event artwork`} fill className="object-cover" sizes="112px" />
+              <div className="relative hidden h-20 w-32 overflow-hidden rounded-lg border border-slate-200 shadow-sm sm:block">
+                <Image src={event.image} alt={`${event.title} event artwork`} fill className="object-cover" sizes="128px" />
               </div>
             )}
-            <SeatLegend />
+            <div className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+              <SeatLegend />
+            </div>
           </div>
         </header>
 
         {/* Main Content Area */}
         {(!event || seatsLoading) ? (
-          <div className="flex-1 flex items-center justify-center border border-white/[0.07] bg-[#0a151d]/50 rounded-2xl">
+          <div className="flex-1 flex items-center justify-center border border-slate-200 bg-white rounded-xl shadow-sm">
             <div className="text-center">
-              <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-zinc-400 animate-pulse">Loading venue layout...</p>
+              <div className="w-10 h-10 border-4 border-bms-red/20 border-t-bms-red rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-slate-500 font-medium animate-pulse">Loading venue layout...</p>
             </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0 relative">
           
-          {/* Seat Map Container */}
-          <div className="flex-1 relative rounded-2xl overflow-hidden shadow-2xl bg-[#090D16] border border-zinc-800/50">
-            <SeatMap 
-              seats={seats}
-              selectedSeatIds={Array.from(selectedSeatIds)}
-              onSeatClick={handleSeatClick}
-              layout={showId === '55551111-5555-1111-5555-111155551111' ? 'concert' : showId === '55556666-5555-6666-5555-666655556666' ? 'arena' : 'theater'}
-            />
+          {/* Main Left Column */}
+          <div className="flex-1 flex flex-col gap-6 relative min-h-0">
+            {/* About Event Card */}
+            {event.description && (
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 shrink-0">
+                <h3 className="text-lg font-bold text-slate-900 mb-2 border-b border-slate-100 pb-2">About this Event</h3>
+                <p className="text-slate-600 text-[14px] leading-relaxed">
+                  {event.description}
+                </p>
+              </div>
+            )}
+
+            {/* Seat Map Container */}
+            <div className="flex-1 relative rounded-xl overflow-hidden shadow-sm bg-[#F8FAFC] border border-slate-200 ring-1 ring-slate-900/5 min-h-[400px]">
+              <SeatMap 
+                seats={seats}
+                selectedSeatIds={Array.from(selectedSeatIds)}
+                onSeatClick={handleSeatClick}
+                layout={event.category === 'Sports' ? 'arena' : event.category === 'Events' ? 'concert' : 'theater'}
+              />
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -219,3 +240,4 @@ export default function ShowBookingPage() {
     </div>
   );
 }
+

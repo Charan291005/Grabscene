@@ -60,13 +60,13 @@ export default function TicketPassPage() {
         setBooking({
           id: 'session-mock',
           booking_ref: reference,
-          total_amount: seats.reduce((sum: number, s: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + (s.price || 0), 0),
+          total_amount: seats.reduce((sum: number, s: any  ) => sum + (s.price || 0), 0),
           status: 'confirmed',
           event_title: selectedEvent?.title || 'Event Title',
           venue_name: selectedEvent ? `${selectedEvent.venue}, ${selectedEvent.city}` : 'Venue Name',
           show_date: selectedEvent?.date || 'Date',
           show_time: selectedEvent?.time || 'Time',
-          seats: seats.map((s: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
+          seats: seats.map((s: any  ) => ({
             row: s.row || '?',
             number: s.seatNumber || '?',
             category: s.category || 'Standard',
@@ -246,7 +246,7 @@ export default function TicketPassPage() {
           <p className="text-xs text-zinc-500 mb-6 uppercase tracking-widest">Scan at Entrance</p>
           
           <div className="relative bg-white p-3 rounded-2xl w-48 h-48 mb-6 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+            { }
             {qrCodeUrl ? (
               <img src={qrCodeUrl} alt="Ticket QR Code" className="w-full h-full" />
             ) : (

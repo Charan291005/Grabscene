@@ -20,7 +20,7 @@ export async function POST() {
     if (error) throw error;
 
     return NextResponse.json({ success: true, message: 'Fast-forwarded active holds to 10s TTL.' });
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+  } catch (error: any  ) {
     console.error(error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

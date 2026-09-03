@@ -22,11 +22,19 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function AuthProvider({ 
+  children,
+  initialSession = null,
+  initialProfile = null
+}: { 
+  children: React.ReactNode;
+  initialSession?: Session | null;
+  initialProfile?: AuthContextType["profile"] | null;
+}) {
+  const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
+  const [session, setSession] = useState<Session | null>(initialSession);
+  const [profile, setProfile] = useState<AuthContextType["profile"]>(initialProfile);
+  const [isLoading, setIsLoading] = useState(false); // Initial state is now ready from server
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabaseBrowser
@@ -41,15 +49,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
-    supabaseBrowser.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        fetchProfile(s.user.id);
-      }
-      setIsLoading(false);
-    });
+    // Only fetch if no initial session was provided (fallback)
+    if (!initialSession) {
+      setIsLoading(true);
+      supabaseBrowser.auth.getSession().then(({ data: { session: s } }) => {
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.user) {
+          fetchProfile(s.user.id);
+        }
+        setIsLoading(false);
+      });
+    }
 
     // Listen for auth changes
     const {
@@ -66,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initialSession]);
 
 
 

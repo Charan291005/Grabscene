@@ -9,7 +9,7 @@ export const EmailPreviewDrawer = () => {
 
   useEffect(() => {
     // Listen for custom event that gets dispatched upon checkout confirmation
-    const handleEmailPreview = (e: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+    const handleEmailPreview = (e: any  ) => {
       if (e.detail?.mockHtml) {
         setHtmlContent(e.detail.mockHtml);
         setIsOpen(true);

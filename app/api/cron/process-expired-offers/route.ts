@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, message: 'Expired offers cycled successfully.' });
 
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+  } catch (error: any  ) {
     console.error('Unhandled error in cron route:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

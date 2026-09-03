@@ -108,7 +108,7 @@ export async function POST(request: Request) {
       message: 'Booking cancelled and seats reallocated successfully.',
       reallocationsCount: offeredEntries?.length || 0,
     });
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+  } catch (error: any  ) {
     console.error('Unhandled error in cancel route:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

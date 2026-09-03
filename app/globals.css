@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #071217;
-  --foreground: #e4e4e7;
-  --brand-teal: #13869a;
-  --brand-teal-bright: #32b8c4;
-  --brand-orange: #e47711;
-  --brand-orange-bright: #f59a32;
+  --background: #f2f5f9;
+  --foreground: #333333;
+  --bms-red: #F84464;
+  --bms-red-hover: #E03C58;
+  --bms-navy: #333545;
+  --bms-navy-dark: #1f2533;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -15,8 +15,14 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
-  --color-cyan-400: var(--brand-teal-bright);
-  --color-cyan-500: var(--brand-teal);
+  
+  --color-cyan-400: var(--bms-red-hover);
+  --color-cyan-500: var(--bms-red);
+  
+  --color-bms-red: var(--bms-red);
+  --color-bms-red-hover: var(--bms-red-hover);
+  --color-bms-navy: var(--bms-navy);
+  --color-bms-navy-dark: var(--bms-navy-dark);
 }
 
 /* ── Global resets ─────────────────────── */
@@ -33,10 +39,7 @@ html {
 }
 
 body {
-  background:
-    radial-gradient(circle at 12% 0%, rgba(19, 134, 154, 0.14), transparent 28rem),
-    radial-gradient(circle at 88% 8%, rgba(228, 119, 17, 0.1), transparent 24rem),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   line-height: 1.6;
@@ -44,15 +47,15 @@ body {
 
 /* ── Focus ring ────────────────────────── */
 :focus-visible {
-  outline: 2px solid #22d3ee;
+  outline: 2px solid var(--bms-red);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
 /* ── Selection ─────────────────────────── */
 ::selection {
-  background: rgba(6, 182, 212, 0.3);
-  color: #fff;
+  background: rgba(248, 68, 100, 0.3);
+  color: #111;
 }
 
 /* ── Reduced-motion preference ─────────── */
@@ -74,14 +77,15 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(113, 113, 122, 0.3);
+  background: #c1c1c1;
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(113, 113, 122, 0.5);
+  background: #a8a8a8;
 }
+

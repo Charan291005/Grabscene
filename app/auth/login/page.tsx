@@ -51,14 +51,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050810] flex items-center justify-center p-4 font-sans">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
       {/* Background accents */}
       <div
         className="fixed inset-0 pointer-events-none"
         aria-hidden="true"
       >
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-cyan-500/[0.07] rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-500/[0.05] rounded-full blur-[100px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-bms-red/[0.07] rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-bms-navy/[0.05] rounded-full blur-[100px]" />
       </div>
 
       <div className="w-full max-w-md relative z-10">
@@ -66,18 +66,18 @@ export default function LoginPage() {
           <div className="flex justify-center mb-6">
             <BrandLogo compact />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Welcome back</h1>
-          <p className="text-zinc-400 mt-2">Sign in to your GrabScene account</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
+          <p className="text-slate-500 mt-2">Sign in to your GrabScene account</p>
         </div>
 
-        <div className="bg-[#0c111d] border border-zinc-800 rounded-3xl p-8 shadow-2xl">
+        <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl">
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <label htmlFor="login-email" className="text-sm font-medium text-zinc-400">
+              <label htmlFor="login-email" className="text-sm font-medium text-slate-500">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-3.5 h-4 w-4 text-zinc-500" aria-hidden="true" />
+                <Mail className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" aria-hidden="true" />
                 <input
                   id="login-email"
                   type="email"
@@ -85,18 +85,18 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red transition-colors"
                   placeholder="you@example.com"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="login-password" className="text-sm font-medium text-zinc-400">
+              <label htmlFor="login-password" className="text-sm font-medium text-slate-500">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-3.5 h-4 w-4 text-zinc-500" aria-hidden="true" />
+                <Lock className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" aria-hidden="true" />
                 <input
                   id="login-password"
                   type={showPassword ? "text" : "password"}
@@ -104,13 +104,13 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-11 pr-12 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-12 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red transition-colors"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-3.5 text-zinc-500 hover:text-zinc-300 transition-colors"
+                  className="absolute right-4 top-3.5 text-slate-500 hover:text-zinc-300 transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -128,8 +128,8 @@ export default function LoginPage() {
               type="submit"
               disabled={isLoading}
               className="w-full py-3.5 rounded-xl font-semibold flex justify-center items-center gap-2 transition-all duration-200
-                bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed
-                shadow-[0_0_20px_rgba(255,255,255,0.05)] hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+                bg-bms-red text-white hover:bg-bms-red-hover disabled:opacity-50 disabled:cursor-not-allowed
+                shadow-sm hover:shadow-md"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -143,33 +143,33 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-slate-500">
               Don&apos;t have an account?{" "}
-              <Link href="/auth/register" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+              <Link href="/auth/register" className="text-bms-red hover:text-bms-red-hover font-medium transition-colors">
                 Create one
               </Link>
             </p>
           </div>
-          <div className="mt-8 pt-6 border-t border-zinc-800">
-            <p className="text-center text-sm font-medium text-zinc-400 mb-4">
+          <div className="mt-8 pt-6 border-t border-slate-200">
+            <p className="text-center text-sm font-medium text-slate-500 mb-4">
               Judge Evaluation (1-Click Logins)
             </p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => handleDemoLogin('customer')}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl text-sm font-medium text-white transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 transition-colors"
               >
                 Login as Demo Customer
               </button>
               <button
                 onClick={() => handleDemoLogin('organiser')}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl text-sm font-medium text-white transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 transition-colors"
               >
                 Login as Demo Organiser
               </button>
               <button
                 onClick={() => handleDemoLogin('admin')}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl text-sm font-medium text-white transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 transition-colors"
               >
                 Login as Demo Admin
               </button>
@@ -177,10 +177,11 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-zinc-600 mt-6">
+        <p className="text-center text-xs text-slate-400 mt-6">
           Demo mode: Use any seeded email (e.g. customer1@example.com) or register a new account.
         </p>
       </div>
     </div>
   );
 }
+

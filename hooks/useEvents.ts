@@ -30,6 +30,7 @@ export function useEvents() {
             events ( title, event_type, image_url, description ),
             venues ( name, location )
           `)
+          .gte('end_time', new Date().toISOString())
           .order('start_time', { ascending: true });
 
         if (error) {

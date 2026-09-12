@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -15,6 +15,9 @@ export default function RegisterPage() {
   const [role, setRole] = useState<"customer" | "organiser">("customer");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,14 +57,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
-      {/* Background accents */}
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans overflow-hidden">
+      {/* Background accents — slow floating drift */}
       <div className="fixed inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-bms-red/[0.06] rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-cyan-500/[0.05] rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-bms-red/[0.06] rounded-full blur-[120px] animate-floatSlow" />
+        <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-cyan-500/[0.05] rounded-full blur-[100px] animate-floatSlow" style={{ animationDelay: '4s' }} />
       </div>
 
-      <div className="w-full max-w-md relative z-10">
+      <div className={`w-full max-w-md relative z-10 ${mounted ? 'animate-fadeInUp' : 'opacity-0'}`}>
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
             <BrandLogo compact />
@@ -79,13 +82,13 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setRole("customer")}
-                  className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 ${
+                  className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-300 btn-press ${
                     role === "customer"
                       ? "border-bms-red bg-bms-red/10 text-slate-900 shadow-[0_0_15px_rgba(248,68,100,0.15)]"
-                      : "border-slate-200 bg-slate-50 text-slate-500 hover:border-zinc-700"
+                      : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300"
                   }`}
                 >
-                  <User className={`w-5 h-5 ${role === "customer" ? "text-bms-red" : ""}`} />
+                  <User className={`w-5 h-5 transition-colors duration-300 ${role === "customer" ? "text-bms-red" : ""}`} />
                   <div className="text-left">
                     <p className="font-medium text-sm">Buy Tickets</p>
                     <p className="text-xs text-slate-500">Customer</p>
@@ -94,13 +97,13 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setRole("organiser")}
-                  className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 ${
+                  className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-300 btn-press ${
                     role === "organiser"
                       ? "border-bms-red bg-bms-red/10 text-slate-900 shadow-[0_0_15px_rgba(248,68,100,0.15)]"
-                      : "border-slate-200 bg-slate-50 text-slate-500 hover:border-zinc-700"
+                      : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300"
                   }`}
                 >
-                  <Briefcase className={`w-5 h-5 ${role === "organiser" ? "text-bms-red" : ""}`} />
+                  <Briefcase className={`w-5 h-5 transition-colors duration-300 ${role === "organiser" ? "text-bms-red" : ""}`} />
                   <div className="text-left">
                     <p className="font-medium text-sm">Host Events</p>
                     <p className="text-xs text-slate-500">Organiser</p>
@@ -109,12 +112,12 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 input-focus-line">
               <label htmlFor="register-email" className="text-sm font-medium text-slate-500">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" aria-hidden="true" />
+                <Mail className="absolute left-4 top-3.5 h-4 w-4 text-slate-400" aria-hidden="true" />
                 <input
                   id="register-email"
                   type="email"
@@ -122,18 +125,18 @@ export default function RegisterPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red transition-colors"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red transition-all duration-300"
                   placeholder="you@example.com"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 input-focus-line">
               <label htmlFor="register-password" className="text-sm font-medium text-slate-500">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" aria-hidden="true" />
+                <Lock className="absolute left-4 top-3.5 h-4 w-4 text-slate-400" aria-hidden="true" />
                 <input
                   id="register-password"
                   type={showPassword ? "text" : "password"}
@@ -142,13 +145,13 @@ export default function RegisterPage() {
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-12 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red transition-colors"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-12 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red transition-all duration-300"
                   placeholder="Minimum 6 characters"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-3.5 text-slate-500 hover:text-zinc-300 transition-colors"
+                  className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600 transition-colors duration-300"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -157,7 +160,7 @@ export default function RegisterPage() {
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm" role="alert">
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-sm animate-shake" role="alert">
                 {error}
               </div>
             )}
@@ -165,9 +168,9 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 rounded-xl font-semibold flex justify-center items-center gap-2 transition-all duration-200
+              className="w-full py-3.5 rounded-xl font-semibold flex justify-center items-center gap-2 transition-all duration-300 btn-shimmer btn-press
                 bg-bms-red text-white hover:bg-bms-red-hover disabled:opacity-50 disabled:cursor-not-allowed
-                shadow-sm hover:shadow-md"
+                shadow-sm hover:shadow-[0_6px_20px_rgba(248,68,100,0.3)] hover:scale-[1.02]"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -193,4 +196,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

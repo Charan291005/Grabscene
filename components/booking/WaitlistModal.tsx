@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Users, Loader2 } from 'lucide-react';
 import { SeatCategory } from '../../types/booking';
 
@@ -18,6 +18,25 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId, userId, secti
   const [isSuccess, setIsSuccess] = useState(false);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [animatedPosition, setAnimatedPosition] = useState(0);
+
+  // Count-up animation for queue position
+  useEffect(() => {
+    if (queuePosition && isSuccess) {
+      let current = 0;
+      const step = Math.max(1, Math.floor(queuePosition / 20));
+      const interval = setInterval(() => {
+        current += step;
+        if (current >= queuePosition) {
+          setAnimatedPosition(queuePosition);
+          clearInterval(interval);
+        } else {
+          setAnimatedPosition(current);
+        }
+      }, 40);
+      return () => clearInterval(interval);
+    }
+  }, [queuePosition, isSuccess]);
 
   const handleJoin = async () => {
     if (!userId) {
@@ -61,6 +80,7 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId, userId, secti
         setTimeout(() => {
           setIsSuccess(false);
           setQueuePosition(null);
+          setAnimatedPosition(0);
           setError(null);
         }, 300);
       }, 3000);
@@ -73,12 +93,12 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId, userId, secti
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="waitlist-heading">
-      <div className="bg-[#0c111d] border border-zinc-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn" role="dialog" aria-modal="true" aria-labelledby="waitlist-heading" onClick={onClose}>
+      <div className="bg-[#0c111d] border border-zinc-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative animate-springIn" onClick={(e) => e.stopPropagation()}>
         <button 
           type="button"
-          onClick={() => { onClose(); setTimeout(() => { setIsSuccess(false); setError(null); setQueuePosition(null); }, 300); }}
-          className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
+          onClick={() => { onClose(); setTimeout(() => { setIsSuccess(false); setError(null); setQueuePosition(null); setAnimatedPosition(0); }, 300); }}
+          className="absolute top-6 right-6 text-zinc-500 hover:text-white hover:rotate-90 transition-all duration-300"
           aria-label="Close waitlist dialog"
         >
           <X className="w-5 h-5" aria-hidden="true" />
@@ -86,7 +106,7 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId, userId, secti
 
         {!isSuccess ? (
           <>
-            <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mb-6" aria-hidden="true">
+            <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mb-6 animate-float" aria-hidden="true">
               <Users className="w-8 h-8 text-cyan-400" />
             </div>
             
@@ -111,7 +131,7 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId, userId, secti
             </div>
 
             {error && (
-              <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm" role="alert">
+              <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm animate-shake" role="alert">
                 {error}
               </div>
             )}
@@ -121,26 +141,37 @@ export const WaitlistModal = ({ isOpen, onClose, category, showId, userId, secti
               onClick={handleJoin}
               disabled={isSubmitting}
               aria-busy={isSubmitting}
-              className="w-full py-3.5 rounded-xl font-medium flex justify-center items-center gap-2 transition-all 
-                bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-xl font-medium flex justify-center items-center gap-2 transition-all duration-300 btn-shimmer btn-press
+                bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Join Waitlist"}
             </button>
           </>
         ) : (
-          <div className="text-center py-8 animate-in zoom-in duration-300">
+          <div className="text-center py-8">
             <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+              {/* SVG path-draw checkmark animation */}
               <svg className="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2.5} 
+                  d="M5 13l4 4L19 7" 
+                  style={{
+                    strokeDasharray: 24,
+                    strokeDashoffset: 0,
+                    animation: 'drawCheck 0.6s ease-out both',
+                  }}
+                />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">You&apos;re on the list!</h2>
-            <p className="text-zinc-400">
+            <h2 className="text-2xl font-bold text-white mb-2 animate-fadeInUp">You&apos;re on the list!</h2>
+            <p className="text-zinc-400 animate-fadeInUp" style={{ animationDelay: '0.15s' }}>
               We&apos;ll email you immediately if a {category} ticket becomes available. You will have 10 minutes to claim it.
             </p>
             {queuePosition && (
-              <p className="text-cyan-400 font-semibold mt-4">
-                Your position: #{queuePosition}
+              <p className="text-cyan-400 font-semibold mt-4 text-lg animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+                Your position: #{animatedPosition}
               </p>
             )}
           </div>

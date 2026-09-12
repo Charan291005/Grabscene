@@ -29,6 +29,11 @@ export default function ShowBookingPage() {
   const showId = typeof params.id === 'string' ? params.id : '';
   const [event, setEvent] = useState<any>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     import('../../../lib/supabase-browser').then(({ supabaseBrowser }) => {
@@ -141,29 +146,34 @@ export default function ShowBookingPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col p-4 md:p-6 lg:p-8 font-sans selection:bg-cyan-500/30">
       <div className="max-w-[1600px] mx-auto w-full flex-1 flex flex-col">
-        {/* Header */}
-        <header className="mb-4 flex flex-col gap-4 rounded-xl border border-slate-200/60 bg-white/80 p-5 shadow-sm backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between transition-all">
+        {/* Header with glassmorphism + fade-in animation */}
+        <header className={cn(
+          "mb-4 flex flex-col gap-4 rounded-xl p-5 lg:flex-row lg:items-center lg:justify-between",
+          "glass-light shadow-lg",
+          mounted ? "animate-fadeInDown" : "opacity-0"
+        )}>
           <div className="flex min-w-0 items-center gap-4">
             <BrandLogo compact />
             {event ? (
-              <div className="min-w-0">
+              <div className="min-w-0 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
                 <div className="inline-flex items-center rounded-full border border-bms-red/20 bg-bms-red/5 px-2.5 py-0.5 text-[11px] font-bold text-bms-red uppercase tracking-wider transition-colors mb-3">
+                  <span className="w-2 h-2 rounded-full bg-bms-red mr-2 animate-pulse shadow-[0_0_8px_rgba(248,68,100,0.5)]" />
                   Live Booking · {availableSeats} seats available
                 </div>
                 <h1 className="truncate text-3xl font-black tracking-tight text-slate-900 md:text-4xl">{event.title}</h1>
                 <p className="truncate text-[14px] font-medium text-slate-500 mt-1">{event.venue}, {event.city} · {event.date} · {event.time}</p>
               </div>
             ) : (
-              <div className="animate-pulse space-y-2">
-                <div className="h-8 bg-slate-200 rounded-md w-64"></div>
-                <div className="h-4 bg-slate-200 rounded-md w-48"></div>
+              <div className="space-y-3 w-64">
+                <div className="h-8 skeleton w-full"></div>
+                <div className="h-4 skeleton w-48"></div>
               </div>
             )}
           </div>
           <div className="flex items-center gap-5 lg:shrink-0">
             {event && (
-              <div className="relative hidden h-20 w-32 overflow-hidden rounded-lg border border-slate-200 shadow-sm sm:block">
-                <Image src={event.image} alt={`${event.title} event artwork`} fill className="object-cover" sizes="128px" />
+              <div className="relative hidden h-20 w-32 overflow-hidden rounded-lg border border-slate-200 shadow-sm sm:block group">
+                <Image src={event.image} alt={`${event.title} event artwork`} fill className="object-cover transition-transform duration-700 group-hover:scale-110" sizes="128px" />
               </div>
             )}
             <div className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
@@ -185,9 +195,12 @@ export default function ShowBookingPage() {
           
           {/* Main Left Column */}
           <div className="flex-1 flex flex-col gap-6 relative min-h-0">
-            {/* About Event Card */}
+            {/* About Event Card — slides in from left */}
             {event.description && (
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 shrink-0">
+              <div className={cn(
+                "bg-white rounded-xl shadow-sm border border-slate-200 p-6 shrink-0",
+                mounted ? "animate-slideInLeft" : "opacity-0"
+              )} style={{ animationDelay: '0.2s' }}>
                 <h3 className="text-lg font-bold text-slate-900 mb-2 border-b border-slate-100 pb-2">About this Event</h3>
                 <p className="text-slate-600 text-[14px] leading-relaxed">
                   {event.description}
@@ -195,8 +208,11 @@ export default function ShowBookingPage() {
               </div>
             )}
 
-            {/* Seat Map Container */}
-            <div className="flex-1 relative rounded-xl overflow-hidden shadow-sm bg-[#F8FAFC] border border-slate-200 ring-1 ring-slate-900/5 min-h-[400px]">
+            {/* Seat Map Container — slides in from right */}
+            <div className={cn(
+              "flex-1 relative rounded-xl overflow-hidden shadow-lg bg-[#F8FAFC] border border-slate-200 ring-1 ring-slate-900/5 min-h-[400px]",
+              mounted ? "animate-slideInRight" : "opacity-0"
+            )} style={{ animationDelay: '0.35s' }}>
               <SeatMap 
                 seats={seats}
                 selectedSeatIds={Array.from(selectedSeatIds)}
@@ -206,8 +222,11 @@ export default function ShowBookingPage() {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="shrink-0">
+          {/* Sidebar — fades in up */}
+          <div className={cn(
+            "shrink-0",
+            mounted ? "animate-fadeInUp" : "opacity-0"
+          )} style={{ animationDelay: '0.4s' }}>
             <BookingSummarySidebar 
               selectedSeats={selectedSeats}
               maxTickets={8}
@@ -220,14 +239,14 @@ export default function ShowBookingPage() {
             />
           </div>
 
-          {/* Toast Notification */}
+          {/* Toast Notification — spring physics */}
           <div className={cn(
-            "fixed bottom-8 left-1/2 -translate-x-1/2 transition-all duration-300 ease-out z-50",
-            toast ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0 pointer-events-none"
+            "fixed bottom-8 left-1/2 z-50",
+            toast ? "animate-toastIn" : "translate-y-8 opacity-0 pointer-events-none transition-all duration-300"
           )}>
             <div className={cn(
-              "px-6 py-4 rounded-xl shadow-2xl border flex items-center gap-3 backdrop-blur-md font-medium",
-              toast?.type === 'error' ? "bg-red-500/10 border-red-500/50 text-red-200" : "bg-emerald-500/10 border-emerald-500/50 text-emerald-200"
+              "px-6 py-4 rounded-xl shadow-2xl border flex items-center gap-3 backdrop-blur-md font-medium whitespace-nowrap",
+              toast?.type === 'error' ? "bg-red-500/10 border-red-500/50 text-red-600" : "bg-emerald-500/10 border-emerald-500/50 text-emerald-700"
             )}>
               <div className={cn(
                 "w-2.5 h-2.5 rounded-full animate-pulse shadow-[0_0_10px_currentColor]",
@@ -251,4 +270,3 @@ export default function ShowBookingPage() {
     </div>
   );
 }
-

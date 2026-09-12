@@ -6,12 +6,15 @@ import { BrandLogo } from '../../../components/BrandLogo';
 import { useHoldTimer } from '../../../hooks/useHoldTimer';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Check, Clock, CreditCard, LockKeyhole, Smartphone, Wallet } from 'lucide-react';
+import { Check, Clock, CreditCard, LockKeyhole, Smartphone, Wallet, Shield } from 'lucide-react';
 
 export default function CheckoutPage() {
    
   const params = useParams();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => { setMounted(true); }, []);
   
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   
@@ -123,9 +126,6 @@ export default function CheckoutPage() {
       }
       
       // Wait 3 seconds to let them see the email drawer, then redirect to digital pass
-      // Note: We now expect the server to return the generated bookingRef (data.bookingId in the MOCK branch for now, or actual bookingId)
-      // Actually, wait, the API was updated to return bookingId in mock, we should redirect to that. 
-      // Let's assume data.bookingId is the bookingRef for now, as that's what the API returns in mock mode.
       setTimeout(() => {
         router.push(`/tickets/${data.bookingId || data.bookingRef || 'MOCK-REF'}`);
       }, 3000);
@@ -144,11 +144,17 @@ export default function CheckoutPage() {
     );
   }
 
+  const paymentTabs = [
+    { id: 'card' as const, label: 'Card', icon: CreditCard },
+    { id: 'upi' as const, label: 'UPI', icon: Smartphone },
+    { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
       
-      {/* Top Navigation & Timer */}
-      <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+      {/* Top Navigation & Timer — stagger in */}
+      <div className={`max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 mb-12 ${mounted ? 'animate-fadeInDown' : 'opacity-0'}`}>
         <div>
           <BrandLogo compact />
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Checkout</h1>
@@ -168,32 +174,32 @@ export default function CheckoutPage() {
       {/* Main Content Area */}
       <div className="max-w-5xl mx-auto flex flex-col lg:flex-row gap-8">
         
-        {/* Form Column */}
-        <div className="flex-1 bg-white border border-slate-200 rounded-3xl p-6 md:p-10 shadow-2xl">
-          <div className="relative h-40 overflow-hidden rounded-2xl border border-white/10 mb-8">
-            <Image src={selectedEvent.image} alt={`${selectedEvent.title} event artwork`} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 640px" />
+        {/* Form Column — slides in from left */}
+        <div className={`flex-1 bg-white border border-slate-200 rounded-3xl p-6 md:p-10 shadow-2xl ${mounted ? 'animate-slideInLeft' : 'opacity-0'}`} style={{ animationDelay: '0.15s' }}>
+          <div className="relative h-40 overflow-hidden rounded-2xl border border-white/10 mb-8 group">
+            <Image src={selectedEvent.image} alt={`${selectedEvent.title} event artwork`} fill className="object-cover transition-transform duration-700 group-hover:scale-110" sizes="(max-width: 1024px) 100vw, 640px" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-bms-red">Your reservation</p>
-              <p className="mt-1 text-xl font-bold text-slate-900">{selectedEvent.title}</p>
+              <p className="mt-1 text-xl font-bold text-white">{selectedEvent.title}</p>
             </div>
           </div>
 
           <h2 className="text-xl font-semibold text-slate-900 mb-6">Customer Details</h2>
           <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
+              <div className="space-y-2 input-focus-line">
                 <label htmlFor="checkout-first-name" className="text-sm text-slate-500">First Name</label>
-                <input id="checkout-first-name" disabled={isExpired} type="text" autoComplete="given-name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50" placeholder="Jane" />
+                <input id="checkout-first-name" disabled={isExpired} type="text" autoComplete="given-name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50 transition-all duration-300" placeholder="Jane" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 input-focus-line">
                 <label htmlFor="checkout-last-name" className="text-sm text-slate-500">Last Name</label>
-                <input id="checkout-last-name" disabled={isExpired} type="text" autoComplete="family-name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50" placeholder="Doe" />
+                <input id="checkout-last-name" disabled={isExpired} type="text" autoComplete="family-name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50 transition-all duration-300" placeholder="Doe" />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 input-focus-line">
               <label htmlFor="checkout-email" className="text-sm text-slate-500">Email Address</label>
-              <input id="checkout-email" disabled={isExpired} type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50" placeholder="jane@example.com" />
+              <input id="checkout-email" disabled={isExpired} type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50 transition-all duration-300" placeholder="jane@example.com" />
             </div>
             
             <hr className="border-slate-200 my-8" />
@@ -203,47 +209,58 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-semibold text-slate-900">Payment Information</h2>
                 <p className="mt-1 text-xs text-slate-500">Demo checkout. No real payment will be charged.</p>
               </div>
-              <LockKeyhole className="h-5 w-5 text-emerald-400" aria-label="Secure demo checkout" />
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-emerald-400" />
+                <LockKeyhole className="h-5 w-5 text-emerald-400" aria-label="Secure demo checkout" />
+              </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Payment method">
-              {[
-                { id: 'card' as const, label: 'Card', icon: CreditCard },
-                { id: 'upi' as const, label: 'UPI', icon: Smartphone },
-                { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
-              ].map(({ id, label, icon: Icon }) => (
-                <button key={id} type="button" role="tab" aria-selected={paymentMethod === id} onClick={() => setPaymentMethod(id)} className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-colors ${paymentMethod === id ? 'border-cyan-400 bg-bms-red-hover/10 text-bms-red' : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-zinc-700 hover:text-slate-900'}`}>
+            {/* Payment method tabs with sliding indicator */}
+            <div className="grid grid-cols-3 gap-2 relative" role="tablist" aria-label="Payment method">
+              {paymentTabs.map(({ id, label, icon: Icon }) => (
+                <button 
+                  key={id} 
+                  type="button" 
+                  role="tab" 
+                  aria-selected={paymentMethod === id} 
+                  onClick={() => setPaymentMethod(id)} 
+                  className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-all duration-300 btn-press ${
+                    paymentMethod === id 
+                      ? 'border-bms-red bg-bms-red/10 text-bms-red shadow-[0_0_12px_rgba(248,68,100,0.15)]' 
+                      : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                  }`}
+                >
                   <Icon className="h-4 w-4" aria-hidden="true" /> {label}
                 </button>
               ))}
             </div>
 
             {paymentMethod === 'card' ? (
-              <div className="mt-6 space-y-4">
-                <div className="space-y-2">
+              <div className="mt-6 space-y-4 animate-fadeIn">
+                <div className="space-y-2 input-focus-line">
                   <label htmlFor="checkout-card-name" className="text-sm text-slate-500">Name on card</label>
-                  <input id="checkout-card-name" value={cardName} onChange={(event) => setCardName(event.target.value)} disabled={isExpired} autoComplete="cc-name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50" placeholder="Jane Doe" />
+                  <input id="checkout-card-name" value={cardName} onChange={(event) => setCardName(event.target.value)} disabled={isExpired} autoComplete="cc-name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50 transition-all duration-300" placeholder="Jane Doe" />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 input-focus-line">
                   <label htmlFor="checkout-card-number" className="text-sm text-slate-500">Card number</label>
                   <div className="relative">
-                    <CreditCard className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" aria-hidden="true" />
-                    <input id="checkout-card-number" value={cardNumber} onChange={(event) => setCardNumber(event.target.value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 '))} disabled={isExpired} inputMode="numeric" autoComplete="cc-number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-12 py-3 text-slate-900 tracking-widest focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50" placeholder="4242 4242 4242 4242" />
+                    <CreditCard className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" aria-hidden="true" />
+                    <input id="checkout-card-number" value={cardNumber} onChange={(event) => setCardNumber(event.target.value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 '))} disabled={isExpired} inputMode="numeric" autoComplete="cc-number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-12 py-3 text-slate-900 tracking-widest focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50 transition-all duration-300" placeholder="4242 4242 4242 4242" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                  <div className="space-y-2 input-focus-line">
                     <label htmlFor="checkout-expiry" className="text-sm text-slate-500">Expiry</label>
-                    <input id="checkout-expiry" value={expiry} onChange={(event) => setExpiry(event.target.value.replace(/\D/g, '').slice(0, 4).replace(/(\d{2})(?=\d)/, '$1/'))} disabled={isExpired} inputMode="numeric" autoComplete="cc-exp" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50" placeholder="08/29" />
+                    <input id="checkout-expiry" value={expiry} onChange={(event) => setExpiry(event.target.value.replace(/\D/g, '').slice(0, 4).replace(/(\d{2})(?=\d)/, '$1/'))} disabled={isExpired} inputMode="numeric" autoComplete="cc-exp" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50 transition-all duration-300" placeholder="08/29" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 input-focus-line">
                     <label htmlFor="checkout-cvv" className="text-sm text-slate-500">CVV</label>
-                    <input id="checkout-cvv" value={cvv} onChange={(event) => setCvv(event.target.value.replace(/\D/g, '').slice(0, 4))} disabled={isExpired} inputMode="numeric" autoComplete="cc-csc" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50" placeholder="123" />
+                    <input id="checkout-cvv" value={cvv} onChange={(event) => setCvv(event.target.value.replace(/\D/g, '').slice(0, 4))} disabled={isExpired} inputMode="numeric" autoComplete="cc-csc" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-bms-red focus:ring-1 focus:ring-bms-red disabled:opacity-50 transition-all duration-300" placeholder="123" />
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="mt-6 rounded-2xl border border-dashed border-zinc-700 bg-slate-50/60 p-6 text-center">
+              <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 p-6 text-center animate-fadeIn">
                 <p className="font-medium text-slate-900">{paymentMethod === 'upi' ? 'UPI demo selected' : 'Wallet demo selected'}</p>
                 <p className="mt-2 text-sm text-slate-500">You will see a simulated authorization step after continuing.</p>
               </div>
@@ -253,15 +270,15 @@ export default function CheckoutPage() {
           </form>
         </div>
 
-        {/* Order Summary Sidebar */}
-        <div className="w-full lg:w-96 flex flex-col gap-6">
+        {/* Order Summary Sidebar — slides in from right */}
+        <div className={`w-full lg:w-96 flex flex-col gap-6 ${mounted ? 'animate-slideInRight' : 'opacity-0'}`} style={{ animationDelay: '0.25s' }}>
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl">
             <h2 className="text-xl font-semibold text-slate-900 mb-6">Order Summary</h2>
             
             <div className="space-y-4 mb-6" aria-live="polite">
               {selectedSeats.length > 0 ? (
-                selectedSeats.map(seat => (
-                  <div key={seat.id} className="flex justify-between text-slate-700">
+                selectedSeats.map((seat, idx) => (
+                  <div key={seat.id} className="flex justify-between text-slate-700 animate-fadeInUp" style={{ animationDelay: `${idx * 0.08}s` }}>
                     <span>Row {seat.row} - Seat {seat.seatNumber} ({seat.category})</span>
                     <span>${seat.price.toFixed(2)}</span>
                   </div>
@@ -283,7 +300,7 @@ export default function CheckoutPage() {
               </div>
 
               {errorMsg && (
-                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/50 text-red-400 text-sm" role="alert">
+                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/50 text-red-500 text-sm animate-shake" role="alert">
                   {errorMsg}
                 </div>
               )}
@@ -293,19 +310,29 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={handlePay}
                   disabled={isExpired || isProcessing || selectedSeats.length === 0}
-                  className="w-full py-4 rounded-xl font-medium flex justify-center items-center gap-2 transition-all 
+                  className={`w-full py-4 rounded-xl font-medium flex justify-center items-center gap-2 transition-all duration-300 btn-press
                     disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed
-                    bg-bms-red hover:bg-bms-red-hover text-white hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                    ${isProcessing 
+                      ? 'bg-bms-red text-white' 
+                      : 'bg-bms-red hover:bg-bms-red-hover text-white hover:shadow-[0_0_20px_rgba(248,68,100,0.3)] hover:scale-[1.02] btn-shimmer'
+                    }`}
                   aria-busy={isProcessing}
                 >
-                  {isProcessing ? "Processing..." : `Pay $${total.toFixed(2)}`}
+                  {isProcessing ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Processing...
+                    </div>
+                  ) : (
+                    `Pay $${total.toFixed(2)}`
+                  )}
                 </button>
                 <button 
                   type="button"
                   onClick={handleCancel}
                   disabled={isProcessing}
-                  className="w-full py-4 rounded-xl font-medium flex justify-center items-center gap-2 transition-all 
-                    text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                  className="w-full py-4 rounded-xl font-medium flex justify-center items-center gap-2 transition-all duration-300 btn-press
+                    text-red-400 hover:bg-red-500/10 hover:text-red-500"
                 >
                   Cancel & Release Seats
                 </button>
@@ -315,10 +342,10 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* Expiry Modal Overlay */}
+      {/* Expiry Modal Overlay — dramatic zoom + blur */}
       {isExpiredModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="expired-title">
-          <div className="bg-white border border-red-500/30 rounded-3xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.1)] text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn" role="dialog" aria-modal="true" aria-labelledby="expired-title">
+          <div className="bg-white border border-red-500/30 rounded-3xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.1)] text-center animate-springIn">
             <div className="w-20 h-20 bg-red-500/10 border border-red-500/50 rounded-full flex items-center justify-center mx-auto mb-6" aria-hidden="true">
               <Clock className="w-8 h-8 text-red-500" />
             </div>
@@ -329,7 +356,7 @@ export default function CheckoutPage() {
             <button 
               type="button"
               onClick={() => router.push(`/shows/${selectedEvent.id}`)}
-              className="w-full py-3.5 rounded-xl font-medium bg-slate-200 hover:bg-slate-300 text-slate-900 transition-colors"
+              className="w-full py-3.5 rounded-xl font-medium bg-slate-200 hover:bg-slate-300 text-slate-900 transition-all duration-300 hover:scale-[1.02] btn-press"
             >
               Return to Seat Map
             </button>
@@ -339,4 +366,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-

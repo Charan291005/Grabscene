@@ -14,6 +14,7 @@ import {
   Loader2,
   ChevronRight,
   Inbox,
+  ArrowLeft,
 } from "lucide-react";
 
 interface BookingSeat {
@@ -44,6 +45,9 @@ export default function BookingHistoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   // Fallback demo user for mock mode
   const userId = user?.id || "33333333-3333-3333-3333-333333333333";
@@ -107,8 +111,13 @@ export default function BookingHistoryPage() {
     <div className="min-h-screen bg-[#050810] text-zinc-100 p-4 md:p-8 font-sans">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-10">
-          <BrandLogo compact />
+        <div className={`mb-10 ${mounted ? 'animate-fadeInDown' : 'opacity-0'}`}>
+          <div className="flex items-center gap-4 mb-4">
+            <Link href="/" className="text-zinc-500 hover:text-white transition-colors duration-300 btn-press">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <BrandLogo compact />
+          </div>
           <h1 className="text-3xl font-bold text-white tracking-tight mt-2">My Bookings</h1>
           <p className="text-zinc-400 mt-1">View your booking history and manage reservations.</p>
         </div>
@@ -116,22 +125,22 @@ export default function BookingHistoryPage() {
         {/* Loading State */}
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mb-4" />
+            <Loader2 className="w-8 h-8 text-bms-red animate-spin mb-4" />
             <p className="text-zinc-500">Loading your bookings...</p>
           </div>
         )}
 
         {/* Empty State */}
         {!isLoading && bookings.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-20 h-20 bg-zinc-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="text-center py-20 animate-fadeInUp">
+            <div className="w-20 h-20 bg-zinc-800/50 rounded-full flex items-center justify-center mx-auto mb-6 animate-float">
               <Inbox className="w-8 h-8 text-zinc-600" />
             </div>
             <h2 className="text-xl font-semibold text-white mb-2">No bookings yet</h2>
             <p className="text-zinc-500 mb-8">Start by browsing events and booking your first seats.</p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-cyan-950 font-semibold rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-bms-red hover:bg-bms-red-hover text-white font-semibold rounded-xl transition-all duration-300 hover:scale-[1.02] btn-press btn-shimmer"
             >
               Browse Events
               <ChevronRight className="w-4 h-4" />
@@ -142,18 +151,19 @@ export default function BookingHistoryPage() {
         {/* Bookings List */}
         {!isLoading && bookings.length > 0 && (
           <div className="space-y-4">
-            {bookings.map((booking) => {
+            {bookings.map((booking, idx) => {
               const isCancelled = booking.status === "cancelled";
               const isConfirmed = booking.status === "confirmed";
 
               return (
                 <div
                   key={booking.id}
-                  className={`bg-[#0c111d] border rounded-2xl overflow-hidden shadow-xl transition-all ${
+                  className={`glass-dark rounded-2xl overflow-hidden shadow-xl transition-all duration-500 animate-fadeInUp ${
                     isCancelled
-                      ? "border-zinc-800/50 opacity-60"
-                      : "border-zinc-800 hover:border-zinc-700"
+                      ? "opacity-60"
+                      : "hover:border-zinc-700 hover:shadow-2xl"
                   }`}
+                  style={{ animationDelay: `${idx * 0.08}s` }}
                 >
                   <div className="p-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -163,11 +173,11 @@ export default function BookingHistoryPage() {
                             {booking.event_title}
                           </h3>
                           <span
-                            className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all duration-300 ${
                               isConfirmed
                                 ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
                                 : "bg-red-500/10 border border-red-500/30 text-red-400"
-                            }`}
+                            } ${isConfirmed ? 'animate-pulse' : ''}`}
                           >
                             {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                           </span>
@@ -205,10 +215,10 @@ export default function BookingHistoryPage() {
 
                     {/* Seats */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {booking.seats.map((seat, idx) => (
+                      {booking.seats.map((seat, seatIdx) => (
                         <div
-                          key={idx}
-                          className="inline-flex items-center gap-2 bg-zinc-900/80 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm"
+                          key={seatIdx}
+                          className="inline-flex items-center gap-2 bg-zinc-900/80 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm transition-all duration-300 hover:border-zinc-700"
                         >
                           <span className="font-medium text-zinc-200">
                             Row {seat.row} - Seat {seat.number}
@@ -227,7 +237,7 @@ export default function BookingHistoryPage() {
                         <>
                           <Link
                             href={`/tickets/${booking.booking_ref}`}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-sm font-medium transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-bms-red/10 border border-bms-red/30 text-bms-red hover:bg-bms-red/20 text-sm font-medium transition-all duration-300 hover:scale-[1.02] btn-press"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                             View Ticket
@@ -236,7 +246,7 @@ export default function BookingHistoryPage() {
                             type="button"
                             onClick={() => handleCancel(booking.id)}
                             disabled={cancellingId === booking.id}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-sm font-medium transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-sm font-medium transition-all duration-300 disabled:opacity-50 btn-press"
                           >
                             {cancellingId === booking.id ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -262,13 +272,13 @@ export default function BookingHistoryPage() {
 
         {/* Toast */}
         <div
-          className={`fixed bottom-8 left-1/2 -translate-x-1/2 transition-all duration-300 ease-out z-50 ${
-            toast ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0 pointer-events-none"
+          className={`fixed bottom-8 left-1/2 z-50 ${
+            toast ? "animate-toastIn" : "translate-y-8 opacity-0 pointer-events-none transition-all duration-300"
           }`}
         >
           {toast && (
             <div
-              className={`px-6 py-4 rounded-xl shadow-2xl border flex items-center gap-3 backdrop-blur-md font-medium ${
+              className={`px-6 py-4 rounded-xl shadow-2xl border flex items-center gap-3 backdrop-blur-md font-medium whitespace-nowrap ${
                 toast.type === "error"
                   ? "bg-red-500/10 border-red-500/50 text-red-200"
                   : "bg-emerald-500/10 border-emerald-500/50 text-emerald-200"

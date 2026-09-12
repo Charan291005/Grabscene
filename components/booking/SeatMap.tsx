@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { ShowSeat } from "../../types/booking";
 import { MonitorPlay, Sparkles } from "lucide-react";
 
@@ -14,20 +14,28 @@ interface Props {
 
 export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater', isLoading = false }: Props) {
   const [scale, setScale] = useState(1);
+  const [prevScale, setPrevScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current) {
         const { width } = containerRef.current.getBoundingClientRect();
         const newScale = width < 800 ? width / 800 : 1;
+        setPrevScale(scale);
         setScale(newScale);
       }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [scale]);
 
   const sectionGrid = useMemo(() => {
     const sections = new Map<string, Map<string, ShowSeat[]>>();
@@ -100,9 +108,9 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
         <div className="w-full pt-12 pb-16 relative overflow-hidden flex flex-col items-center">
           <div className="absolute top-0 w-full h-full bg-gradient-to-b from-cyan-500/10 to-transparent opacity-50"></div>
           {layout === 'theater' ? (
-            <div className="w-[80%] h-32 absolute -top-16 rounded-[100%] border-b-[8px] border-cyan-500 shadow-[0_20px_60px_rgba(34,211,238,0.4)] bg-black z-10"></div>
+            <div className="w-[80%] h-32 absolute -top-16 rounded-[100%] border-b-[8px] border-cyan-500 shadow-[0_20px_60px_rgba(34,211,238,0.4)] bg-black z-10 animate-breathe"></div>
           ) : (
-            <div className="w-[80%] h-8 absolute top-0 border-b-[4px] border-cyan-500 shadow-[0_10px_40px_rgba(34,211,238,0.4)] bg-black z-10"></div>
+            <div className="w-[80%] h-8 absolute top-0 border-b-[4px] border-cyan-500 shadow-[0_10px_40px_rgba(34,211,238,0.4)] bg-black z-10 animate-breathe"></div>
           )}
           <div className="relative z-20 flex flex-col items-center mt-4 text-cyan-400/80">
             <MonitorPlay className="w-6 h-6 mb-2" />
@@ -111,14 +119,18 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
         </div>
       )}
 
-      {/* Seat Grid */}
-      <div ref={containerRef} className="w-full overflow-auto pb-24 px-4 scrollbar-hide" style={{ touchAction: 'pan-x pan-y' }}>
+      {/* Seat Grid with smooth zoom transitions */}
+      <div ref={containerRef} className="w-full overflow-auto pb-24 px-4 scrollbar-hide dark-scrollbar" style={{ touchAction: 'pan-x pan-y' }}>
         <div 
           className={`mx-auto flex flex-col items-center min-w-[max-content] pb-10 ${layout === 'arena' ? 'pt-16' : 'pt-10'}`}
-          style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}
+          style={{ 
+            transform: `scale(${scale})`, 
+            transformOrigin: 'top center',
+            transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
         >
           {layout === 'arena' && (
-            <div className="w-64 h-32 bg-zinc-900 border border-zinc-700 rounded-3xl flex flex-col items-center justify-center text-zinc-500 font-bold tracking-widest uppercase mb-16 shadow-[0_0_50px_rgba(255,255,255,0.05)]">
+            <div className="w-64 h-32 bg-zinc-900 border border-zinc-700 rounded-3xl flex flex-col items-center justify-center text-zinc-500 font-bold tracking-widest uppercase mb-16 shadow-[0_0_50px_rgba(255,255,255,0.05)] animate-breathe">
               <Sparkles className="w-5 h-5 mb-2 text-zinc-600" />
               Center Stage
             </div>
@@ -143,7 +155,7 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
             {layout === 'arena' ? (
               // Custom 360 Arena Positioning
               <>
-                {sectionGrid.map(({ sectionName, rows }) => {
+                {sectionGrid.map(({ sectionName, rows }, sectionIndex) => {
                   let positionClass = "";
                   if (sectionName === "North Bowl") positionClass = "absolute top-0 left-1/2 -translate-x-1/2";
                   if (sectionName === "South Bowl") positionClass = "absolute bottom-0 left-1/2 -translate-x-1/2 rotate-180";
@@ -151,7 +163,11 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
                   if (sectionName === "West VIP") positionClass = "absolute right-0 top-1/2 -translate-y-1/2 rotate-90";
 
                   return (
-                    <div key={sectionName} className={`flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30 shadow-xl ${positionClass}`}>
+                    <div 
+                      key={sectionName} 
+                      className={`flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30 shadow-xl ${positionClass} ${mounted ? 'animate-fadeIn' : 'opacity-0'}`}
+                      style={{ animationDelay: `${sectionIndex * 0.15}s` }}
+                    >
                       <h3 className="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-6 px-6 py-2 border border-zinc-800 rounded-full bg-zinc-900/80 shadow-lg flex items-center gap-2">
                         {(sectionName.toLowerCase().includes('vip') || sectionName.toLowerCase().includes('premium')) && <Sparkles className="w-3 h-3 text-amber-500" />}
                         {sectionName}
@@ -159,13 +175,13 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
                       <div className="flex flex-col gap-3">
                         {rows.map(([row, rowSeats]) => (
                           <div key={row} className="flex items-center gap-4 group">
-                            <div className="w-6 text-right text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors">{row}</div>
+                            <div className="w-6 text-right text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors duration-300">{row}</div>
                             <div className="flex gap-1.5">
                               {rowSeats.map((seat) => (
                                 <SeatButton key={seat.id} seat={seat} onSelect={onSeatClick} getColor={getSeatColor} isSelected={selectedSeatIds.includes(seat.id)} />
                               ))}
                             </div>
-                            <div className="w-6 text-left text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors">{row}</div>
+                            <div className="w-6 text-left text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors duration-300">{row}</div>
                           </div>
                         ))}
                       </div>
@@ -178,7 +194,8 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
             {sectionGrid.map(({ sectionName, rows }, sectionIndex) => (
               <div 
                 key={sectionName} 
-                className="flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30 shadow-xl w-full"
+                className={`flex flex-col items-center bg-zinc-950/30 p-6 rounded-3xl border border-zinc-800/30 shadow-xl w-full ${mounted ? 'animate-fadeInUp' : 'opacity-0'}`}
+                style={{ animationDelay: `${sectionIndex * 0.12}s` }}
               >
                 <h3 className="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-6 px-6 py-2 border border-zinc-800 rounded-full bg-zinc-900/80 shadow-lg flex items-center gap-2">
                   {(sectionName.toLowerCase().includes('vip') || sectionName.toLowerCase().includes('premium')) && <Sparkles className="w-3 h-3 text-amber-500" />}
@@ -187,7 +204,7 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
                 <div className="flex flex-col gap-3">
                   {rows.map(([row, rowSeats]) => (
                     <div key={row} className="flex items-center gap-6 justify-center group">
-                      <div className="w-8 text-center text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors">
+                      <div className="w-8 text-center text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors duration-300">
                         {row}
                       </div>
 
@@ -233,7 +250,7 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
                         )}
                       </div>
 
-                      <div className="w-8 text-center text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors">
+                      <div className="w-8 text-center text-sm font-bold text-zinc-600 group-hover:text-cyan-500 transition-colors duration-300">
                         {row}
                       </div>
                     </div>
@@ -248,7 +265,7 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
       </div>
 
       {/* Modern Legend */}
-      <div className="absolute bottom-0 left-0 w-full bg-[#0c111d]/90 backdrop-blur-xl border-t border-zinc-800/50 p-4 flex flex-wrap items-center justify-center gap-6 text-sm">
+      <div className="absolute bottom-0 left-0 w-full glass-dark p-4 flex flex-wrap items-center justify-center gap-6 text-sm">
         <div className="flex items-center gap-2 text-amber-400">
           <div className="w-5 h-5 rounded-md bg-amber-400 border border-amber-500 flex items-center justify-center shadow-inner text-amber-950">
             <Sparkles className="w-3 h-3" />
@@ -278,27 +295,47 @@ export function SeatMap({ seats, selectedSeatIds, onSeatClick, layout = 'theater
   );
 }
 
-function SeatButton({ seat, onSelect, getColor, isSelected }: { seat: ShowSeat, onSelect: (id: string) => void, getColor: any  , isSelected: boolean }) {
+function SeatButton({ seat, onSelect, getColor, isSelected }: { seat: ShowSeat, onSelect: (id: string) => void, getColor: any, isSelected: boolean }) {
   const isVip = seat.category === "VIP";
   const colorClass = getColor(seat.status, seat.category);
   const isDisabled = seat.status === "booked" || seat.status === "held";
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    onSelect(seat.id);
+
+    // Ripple effect
+    if (btnRef.current && !isDisabled) {
+      const btn = btnRef.current;
+      const rect = btn.getBoundingClientRect();
+      const ripple = document.createElement('span');
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+      ripple.className = 'ripple-effect';
+      btn.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    }
+  }, [seat.id, onSelect, isDisabled]);
 
   return (
     <button
+      ref={btnRef}
       type="button"
       disabled={isDisabled}
-      onClick={() => onSelect(seat.id)}
+      onClick={handleClick}
       className={`
-        relative w-7 h-8 rounded-t-lg rounded-b-sm border-t-2 border-x-2 border-b-4 
+        ripple-container relative w-7 h-8 rounded-t-lg rounded-b-sm border-t-2 border-x-2 border-b-4 
         transition-all duration-200 transform hover:-translate-y-1 hover:shadow-lg
         flex flex-col items-center justify-start pt-1 group
-        ${isSelected ? 'bg-cyan-500 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-110 z-10' : colorClass}
+        ${isSelected ? 'bg-cyan-500 border-cyan-400 animate-seatGlow scale-110 z-10' : colorClass}
         ${!isDisabled && isVip && !isSelected ? 'shadow-[0_0_10px_rgba(245,158,11,0.1)]' : ''}
       `}
       title={`${seat.section || seat.category} - Row ${seat.row} Seat ${seat.seatNumber} - $${seat.price}`}
       aria-label={`${seat.category} seat ${seat.row}${seat.seatNumber} - ${seat.status}`}
     >
-      <span className="text-[9px] font-bold text-white/50 group-hover:text-white transition-colors">{seat.seatNumber}</span>
+      <span className="text-[9px] font-bold text-white/50 group-hover:text-white transition-colors duration-200">{seat.seatNumber}</span>
       
       {/* Armrests simulation */}
       <div className="absolute top-2 -left-[1px] w-[2px] h-3 bg-black/20 rounded-full"></div>
@@ -306,7 +343,7 @@ function SeatButton({ seat, onSelect, getColor, isSelected }: { seat: ShowSeat, 
       
       {/* VIP Star */}
       {isVip && !isDisabled && (
-        <Sparkles className="absolute -top-2 w-3 h-3 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <Sparkles className="absolute -top-2 w-3 h-3 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       )}
     </button>
   );
